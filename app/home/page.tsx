@@ -1,9 +1,12 @@
-import Navbar from '@/components/Navbar'
+import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
 
 function Home() {
   return (
-    <Navbar />
-  )
+    <>
+      <Navbar />
+    </>
+  );
 }
 
-export default Home
+export default Home;
