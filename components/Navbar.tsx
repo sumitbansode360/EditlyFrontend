@@ -53,36 +53,28 @@ export default function Navbar({
 }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 md:px-8 lg:px-12">
         {/* LEFT SIDE */}
         <Link
           href="/"
           className="flex items-center gap-3 transition-opacity hover:opacity-90"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
             <FileText className="h-5 w-5" />
           </div>
-
-          <div className="hidden sm:block">
-            <h1 className="text-base font-semibold leading-none">
-              {appName}
-            </h1>
-
-            <p className="mt-1 text-xs text-muted-foreground">
-              Realtime Document Editor
-            </p>
-          </div>
+          <h1 className="hidden text-base font-semibold leading-none sm:block">
+            {appName}
+          </h1>
         </Link>
 
         {/* CENTER SEARCH */}
-        <div className="hidden max-w-xl flex-1 md:flex">
+        <div className="hidden max-w-2xl flex-1 md:flex">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
             <Input
               type="text"
               placeholder="Search documents..."
-              className="h-11 rounded-xl pl-10 shadow-sm"
+              className="h-10 rounded-xl pl-10 shadow-sm"
               onChange={(e) => onSearch?.(e.target.value)}
             />
           </div>
@@ -93,23 +85,15 @@ export default function Navbar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 rounded-xl border bg-background px-3 py-2 transition-colors hover:bg-muted focus:outline-none">
-                <Avatar className="h-10 w-10">
+                <Avatar className="h-9 w-9">
                   <AvatarImage src={user.image} alt={user.name} />
-
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-
-                <div className="hidden text-left sm:block">
-                  <p className="text-sm font-medium leading-none">
-                    {user.name}
-                  </p>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {user.isAuthenticated ? "Active now" : "Guest"}
-                  </p>
-                </div>
+                <p className="hidden text-sm font-medium leading-none sm:block">
+                  {user.name}
+                </p>
               </button>
             </DropdownMenuTrigger>
 
@@ -171,7 +155,7 @@ export default function Navbar({
       </div>
 
       {/* MOBILE SEARCH */}
-      <div className="border-t px-4 py-3 md:hidden">
+      <div className="border-t px-4 py-2 md:hidden">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
