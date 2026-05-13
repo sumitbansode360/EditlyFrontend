@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Globe, Eye, EyeOff } from "lucide-react";
+import { FileText, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";

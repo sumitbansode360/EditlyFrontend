@@ -37,20 +37,33 @@ export function DocumentGrid({ document }: Props) {
       <CardContent className="p-0">
         {/* DOCUMENT PREVIEW */}
         <div className="relative">
-          <div className="relative h-44 overflow-hidden border-b bg-muted/30 md:h-48">
-            {document.thumbnail ? (
-              <img
-                src={document.thumbnail}
-                alt={document.title}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border bg-background shadow-sm">
-                  <FileText className="h-7 w-7 text-muted-foreground" />
-                </div>
+          <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-4 md:h-48">
+            {/* DOCUMENT PAPER */}
+            <div className="mx-auto h-full w-[85%] rounded-sm border bg-background shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
+              {/* DOCUMENT HEADER */}
+              <div className="border-b px-4 py-3">
+                <div className="h-3 w-24 rounded bg-muted-foreground/20" />
               </div>
-            )}
+
+              {/* DOCUMENT CONTENT */}
+              <div className="space-y-2 p-4">
+                <div className="h-2 w-full rounded bg-muted-foreground/10" />
+
+                <div className="h-2 w-[92%] rounded bg-muted-foreground/10" />
+
+                <div className="h-2 w-[80%] rounded bg-muted-foreground/10" />
+
+                <div className="pt-4">
+                  <div className="h-2 w-[70%] rounded bg-muted-foreground/10" />
+                </div>
+
+                <div className="h-2 w-full rounded bg-muted-foreground/10" />
+
+                <div className="h-2 w-[85%] rounded bg-muted-foreground/10" />
+
+                <div className="h-2 w-[60%] rounded bg-muted-foreground/10" />
+              </div>
+            </div>
 
             {/* ACTION MENU */}
             <div className="absolute right-3 top-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -99,23 +112,22 @@ export function DocumentGrid({ document }: Props) {
 
         {/* FILE INFO */}
         <div className="space-y-2 p-3">
-          {/* TITLE + MENU */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="line-clamp-1 text-[13px] font-medium leading-none">
-                {document.title}
-              </h3>
+          {/* TITLE */}
+          <div className="min-w-0">
+            <h3 className="line-clamp-1 text-[13px] font-medium leading-none">
+              {document.title}
+            </h3>
 
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Edited {document.updatedAt}
-              </p>
-            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Edited {document.updatedAt}
+            </p>
           </div>
 
           {/* METADATA */}
           <div className="space-y-1 border-t pt-2">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
+
               <span className="line-clamp-1 text-[11px]">
                 Owner: {document.owner}
               </span>
@@ -123,7 +135,8 @@ export function DocumentGrid({ document }: Props) {
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
-              <span>
+
+              <span className="text-[11px]">
                 Created {document.createdAt}
               </span>
             </div>

@@ -36,19 +36,9 @@ export function DocumentListItem({ document }: Props) {
     <Card className="group overflow-hidden rounded-xl border bg-background transition-all duration-200 hover:border-primary/40 hover:shadow-sm">
       <CardContent className="p-0">
         <div className="flex items-center gap-4 p-4">
-          {/* THUMBNAIL */}
-          <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border bg-muted/30">
-            {document.thumbnail ? (
-              <img
-                src={document.thumbnail}
-                alt={document.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <FileText className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
+          {/* FILE ICON */}
+          <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md border bg-muted/30">
+            <FileText className="h-7 w-7 text-muted-foreground" />
           </div>
 
           {/* DOCUMENT INFO */}

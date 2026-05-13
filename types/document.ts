@@ -4,6 +4,5 @@ export type DocumentItem = {
   owner: string;
   createdAt: string;
   updatedAt: string;
-  thumbnail?: string;
   isShared?: boolean;
 };
