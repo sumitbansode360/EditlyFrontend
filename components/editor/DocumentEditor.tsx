@@ -13,7 +13,7 @@ import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { useState, useCallback, useEffect } from "react";
-
+import FontSize from "./extensions/FontSize";
 import EditorToolbar from "./EditorToolbar";
 import EditorCanvas from "./EditorCanvas";
 
@@ -23,14 +23,21 @@ export default function DocumentEditor() {
   const [isSaving, setIsSaving] = useState(false);
 
   const editor = useEditor({
+    // ← Fix SSR hydration warning
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
+        // ← Fix: StarterKit includes these — disable to avoid duplicates
+        underline: false,      // we add it manually below
         heading: { levels: [1, 2, 3, 4] },
+        bulletList: { keepMarks: true, keepAttributes: false },
+        orderedList: { keepMarks: true, keepAttributes: false },
       }),
-      Underline,
-      TextStyle,
+      Underline,               // ← now added exactly once
+      TextStyle,               // ← required by FontSize + Color
       Color,
-      Highlight.configure({ multicolor: true }),
+      FontSize,                // ← custom font size extension
+      Highlight.configure({ multicolor: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "Start typing your document…" }),
       Typography,
@@ -45,24 +52,37 @@ export default function DocumentEditor() {
     },
   });
 
-  // Auto-save simulation (debounced)
-  const triggerSave = useCallback(() => {
+  // ── Manual save: Ctrl+S ──────────────────────────────────────
+  const handleSave = useCallback(async () => {
+    if (isSaving) return;
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      // TODO: replace with your Django API call
+      // await fetch("/api/documents/1/", {
+      //   method: "PATCH",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     title: docTitle,
+      //     content: editor?.getHTML(),
+      //   }),
+      // });
+      await new Promise((r) => setTimeout(r, 600)); // simulate network
       setLastSaved(new Date());
+    } finally {
       setIsSaving(false);
-    }, 800);
-  }, []);
+    }
+  }, [isSaving]);
 
   useEffect(() => {
-    if (!editor) return;
-    const handler = setTimeout(triggerSave, 2000);
-    const unsub = editor.on("update", () => {
-      clearTimeout(handler);
-      setTimeout(triggerSave, 2000);
-    });
-    return () => unsub.destroy();
-  }, [editor, triggerSave]);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleSave]);
 
   return (
     <div className="flex flex-col h-screen bg-[#f0f4f8] overflow-hidden">
@@ -72,6 +92,7 @@ export default function DocumentEditor() {
         onTitleChange={setDocTitle}
         lastSaved={lastSaved}
         isSaving={isSaving}
+        onSave={handleSave}
       />
       <EditorCanvas editor={editor} />
     </div>
