@@ -19,8 +19,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { Label } from "@/components/ui/label";
+import { SignupType } from "@/types/auth";
 
-export function SignupForm() {
+export function SignupForm({
+  emailSent,
+  setEmailSent,
+  registeredEmail,
+  setRegisteredEmail,
+}: SignupType) {
   const {
     register,
     handleSubmit,
@@ -37,7 +43,8 @@ export function SignupForm() {
   const onSubmit = async (data: SignupSchemaType) => {
     try {
       await signupUser(data);
-
+      setRegisteredEmail(data.email);
+      setEmailSent(true);
       console.log("Signup success");
     } catch (error) {
       console.error(error);
