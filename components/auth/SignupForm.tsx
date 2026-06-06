@@ -1,9 +1,6 @@
-"use client";
-
 import Link from "next/link";
 
 import { FileText, Loader2 } from "lucide-react";
-
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,11 +17,10 @@ import { Input } from "@/components/ui/input";
 
 import { Label } from "@/components/ui/label";
 import { SignupType } from "@/types/auth";
+import { toast } from "sonner";
 
 export function SignupForm({
-  emailSent,
   setEmailSent,
-  registeredEmail,
   setRegisteredEmail,
 }: SignupType) {
   const {
@@ -42,12 +38,24 @@ export function SignupForm({
 
   const onSubmit = async (data: SignupSchemaType) => {
     try {
-      await signupUser(data);
-      setRegisteredEmail(data.email);
+      const payload = {
+        username: data.email,
+        email: data.email,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        password: data.password,
+      };
+      const response = await signupUser(payload);
+      setRegisteredEmail(response.email);
       setEmailSent(true);
-      console.log("Signup success");
-    } catch (error) {
-      console.error(error);
+      toast.success(response.message);
+    } catch (error: any) {
+      // Prioritize the specific email error to avoid showing duplicate username errors
+      if (error.email) {
+        toast.error(error.email);
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 

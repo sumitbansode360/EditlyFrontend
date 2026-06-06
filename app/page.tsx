@@ -1,16 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Eye, EyeOff } from "lucide-react";
+import { FileText, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import AuthHeroSection from "@/components/auth/AuthHeroSection";
+import { loginUser } from "@/lib/api/auth";
+import { useUser } from "@/lib/api/UserContext";
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginSchemaType = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { login } = useUser();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginSchemaType) => {
+    try {
+      const response = await loginUser({ username: data.email, password: data.password });
+      login(response);
+      toast.success("Welcome back! Login successful.");
+      router.push("/home");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -37,7 +72,10 @@ export default function LoginPage() {
                 Sign in to continue your journey
               </p>
 
-              <form className="mt-10 space-y-6">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="mt-10 space-y-6"
+              >
                 {/* Email */}
                 <div className="space-y-2">
                   <Label className="text-xs font-bold tracking-[0.2em] uppercase">
@@ -48,7 +86,13 @@ export default function LoginPage() {
                     type="email"
                     placeholder="name@company.com"
                     className="h-12 rounded-xl"
+                    {...register("email")}
                   />
+                  {errors.email && (
+                    <p className="text-xs text-red-500">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password */}
@@ -62,7 +106,13 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       className="h-12 rounded-xl pr-12"
+                      {...register("password")}
                     />
+                    {errors.password && (
+                      <p className="text-xs text-red-500">
+                        {errors.password.message}
+                      </p>
+                    )}
 
                     <button
                       type="button"
@@ -90,9 +140,17 @@ export default function LoginPage() {
                 {/* Submit */}
                 <Button
                   type="submit"
+                  disabled={isSubmitting}
                   className="h-12 w-full rounded-xl text-sm font-semibold tracking-wide"
                 >
-                  → SIGN IN TO YOUR ACCOUNT
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      SIGNING IN...
+                    </>
+                  ) : (
+                    "→ SIGN IN TO YOUR ACCOUNT"
+                  )}
                 </Button>
 
                 {/* Footer */}
