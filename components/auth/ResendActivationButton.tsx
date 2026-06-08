@@ -47,7 +47,7 @@ export function ResendActivationButton({ onResend }: Props) {
           type="button"
           onClick={handleResend}
           disabled={loading}
-          className="text-sm font-medium text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+          className="text-sm font-medium text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-40 hover:cursor-pointer"
         >
           {loading ? (
             <span className="flex items-center gap-1.5">

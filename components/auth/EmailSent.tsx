@@ -6,15 +6,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { resendActivation } from "@/lib/api/auth";
-
+import { PendingUser } from "@/types/auth";
 import { ResendActivationButton } from "./ResendActivationButton";
 
-type Props = { email: string; onBack: () => void };
+type Props = {
+  pendingUser: PendingUser;
+  onBack: () => void;
+};
 
-export function EmailSent({ email, onBack }: Props) {
+export function EmailSent({ pendingUser, onBack }: Props) {
   const resendEmail = async () => {
     try {
-      const res = await resendActivation(email);
+      const res = await resendActivation(pendingUser.email);
       toast.success(res.message ?? "Activation email sent successfully");
     } catch (error: any) {
       toast.error(error.message ?? "Unable to resend email");
@@ -25,24 +28,27 @@ export function EmailSent({ email, onBack }: Props) {
   return (
     <Card className="w-full max-w-md rounded-3xl border p-8 shadow-sm">
       <div className="flex flex-col items-center gap-0 text-center">
-
         {/* Icon */}
         <div className="mb-6 flex size-16 items-center justify-center rounded-full border bg-green-500/10">
           <MailCheck className="size-8 text-green-600" />
         </div>
 
         {/* Heading */}
-        <h1 className="text-2xl font-semibold tracking-tight">Check your inbox</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Check your inbox
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           We've sent an activation link to your email address.
         </p>
 
         {/* Email pill */}
-        <div className="mt-5 w-full rounded-xl border bg-muted/20 px-4 py-3 text-left">
+        <div className="mt-5 w-full rounded-xl border bg-muted/20 px-4 py-3 text-center">
           <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
             Sent to
           </p>
-          <p className="mt-1 font-mono text-sm font-semibold break-all">{email}</p>
+          <p className="mt-1 font-mono text-sm font-semibold break-all">
+            {pendingUser.email}
+          </p>
         </div>
 
         {/* Next step */}
@@ -51,8 +57,8 @@ export function EmailSent({ email, onBack }: Props) {
           <div>
             <p className="text-sm font-medium">Next step</p>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Open the email and click the activation link to verify your account and
-              access your workspace.
+              Open the email and click the activation link to verify your
+              account and access your workspace.
             </p>
           </div>
         </div>
@@ -66,9 +72,14 @@ export function EmailSent({ email, onBack }: Props) {
         </div>
 
         {/* Back */}
-        <Button variant="ghost" size="sm" className="mt-3 text-muted-foreground" onClick={onBack}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-3 text-muted-foreground hover:cursor-pointer"
+          onClick={onBack}
+        >
           <ArrowLeft className="mr-1.5 size-3.5" />
-          Change email address
+          Want to update your information?
         </Button>
       </div>
     </Card>

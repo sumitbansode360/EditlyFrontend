@@ -3,11 +3,12 @@
 import AuthHeroSection from "@/components/auth/AuthHeroSection";
 import { EmailSent } from "@/components/auth/EmailSent";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { PendingUser, SignupStep } from "@/types/auth";
 import { useState } from "react";
 
 export default function SignupPage() {
-  const [emailSent, setEmailSent] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [pendingUser, setPendingUser] = useState<PendingUser | null>(null);
+  const [currentStep, setCurrentStep] = useState<SignupStep>("signup");
 
   return (
     <main className="min-h-screen bg-background">
@@ -19,15 +20,27 @@ export default function SignupPage() {
 
         {/* RIGHT SIDE */}
         <section className="flex items-center justify-center px-6 py-10">
-          {emailSent ? (
-            <EmailSent
-              email={registeredEmail}
-              onBack={() => setEmailSent(false)}
-            />
-          ) : (
+          {currentStep === "signup" && (
             <SignupForm
-              setEmailSent={setEmailSent}
-              setRegisteredEmail={setRegisteredEmail}
+              mode="signup"
+              setPendingUser={setPendingUser}
+              setCurrentStep={setCurrentStep}
+            />
+          )}
+
+          {currentStep === "edit" && (
+            <SignupForm
+              mode="edit"
+              pendingUser={pendingUser}
+              setPendingUser={setPendingUser}
+              setCurrentStep={setCurrentStep}
+            />
+          )}
+
+          {currentStep === "verify" && pendingUser && (
+            <EmailSent
+              pendingUser={pendingUser}
+              onBack={() => setCurrentStep("edit")}
             />
           )}
         </section>

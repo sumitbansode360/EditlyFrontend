@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { signupSchema, SignupSchemaType } from "@/schemas/auth.schema";
 
-import { signupUser } from "@/lib/api/auth";
+import { signupUser, updatePendingUser } from "@/lib/api/auth";
 
 import { PasswordInput } from "./PasswordInput";
 import { PasswordStrength } from "./PasswordStrength";
@@ -20,8 +20,10 @@ import { SignupType } from "@/types/auth";
 import { toast } from "sonner";
 
 export function SignupForm({
-  setEmailSent,
-  setRegisteredEmail,
+  mode,
+  pendingUser,
+  setPendingUser,
+  setCurrentStep,
 }: SignupType) {
   const {
     register,
@@ -31,24 +33,40 @@ export function SignupForm({
   } = useForm<SignupSchemaType>({
     resolver: zodResolver(signupSchema),
     mode: "onChange",
+    defaultValues: {
+      email: pendingUser?.email ?? "",
+      first_name: pendingUser?.first_name ?? "",
+      last_name: pendingUser?.last_name ?? "",
+    },
   });
 
   const password = watch("password", "");
   const confirmPassword = watch("confirm_password", "");
 
   const onSubmit = async (data: SignupSchemaType) => {
+    const payload = {
+      username: data.email,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      password: data.password,
+    };
     try {
-      const payload = {
-        username: data.email,
-        email: data.email,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        password: data.password,
-      };
-      const response = await signupUser(payload);
-      setRegisteredEmail(response.email);
-      setEmailSent(true);
-      toast.success(response.message);
+      if (mode === "signup") {
+        const response = await signupUser(payload);
+        setPendingUser(response.user);
+        toast.success(response.message);
+        setCurrentStep?.("verify");
+      } else {
+        // update information
+        if (!pendingUser) {
+          return;
+        }
+        const response = await updatePendingUser(pendingUser.id, payload);
+        setPendingUser(response.user);
+        toast.success(response.message || "Information updated successfully");
+        setCurrentStep?.("verify");
+      }
     } catch (error: any) {
       // Prioritize the specific email error to avoid showing duplicate username errors
       if (error.email) {
@@ -67,7 +85,7 @@ export function SignupForm({
       </div>
 
       {/* TITLE */}
-      <h1 className="text-4xl font-bold tracking-tight">Create account</h1>
+      <h1 className="text-4xl font-bold tracking-tight">{ mode === "signup" ? "Create account" : "Update your information"}</h1>
 
       <p className="mt-3 text-muted-foreground">
         Create your workspace and start collaborating in realtime.
@@ -165,10 +183,14 @@ export function SignupForm({
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              {mode === "signup"
+                ? "Creating account..."
+                : "Updating information..."}
             </>
-          ) : (
+          ) : mode === "signup" ? (
             "Create account"
+          ) : (
+            "Update information"
           )}
         </Button>
 

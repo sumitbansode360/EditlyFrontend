@@ -57,3 +57,16 @@ export const activateUser = async (uid: string, token: string): Promise<any> => 
     );
   }
 };
+
+
+export async function updatePendingUser(
+  id: string,
+  payload: SignupPayload
+) {
+  const response = await axios.patch(
+    `${API_URL}/api/auth/update-pending-user/${id}/`,
+    payload
+  );
+
+  return response.data;
+}

@@ -1,13 +1,24 @@
 import { SignupSchemaType } from "@/schemas/auth.schema";
 
-export interface SignupType{
-    setEmailSent: React.Dispatch<React.SetStateAction<boolean>>;
-    setRegisteredEmail: React.Dispatch<React.SetStateAction<string>>;
+export interface PendingUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
+export type SignupStep = "signup" | "edit" | "verify";
+
+export interface SignupType {
+  mode: SignupStep;
+  pendingUser?: PendingUser | null;
+  setPendingUser: React.Dispatch<React.SetStateAction<PendingUser | null>>;
+  setCurrentStep?: React.Dispatch<React.SetStateAction<SignupStep>>;
 }
 
 export interface AuthResponse {
   message: string;
-  email: string;
+  user: PendingUser;
 }
 
 export interface User {
