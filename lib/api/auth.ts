@@ -41,9 +41,10 @@ export const resendActivation = async (email: string): Promise<AuthResponse> => 
     const response = await axios.post(`${API_URL}/api/auth/resend-activation-email/`, { email });
     return response.data;
   } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || error.response?.data?.detail || "Failed to resend activation email"
-    );
+    const message = error.response?.data?.message || error.response?.data?.detail || "Failed to resend activation email";
+    const err = new Error(message) as any;
+    err.status = error.response?.status;
+    throw err;
   }
 };
 

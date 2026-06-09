@@ -68,11 +68,17 @@ export function SignupForm({
         setCurrentStep?.("verify");
       }
     } catch (error: any) {
-      // Prioritize the specific email error to avoid showing duplicate username errors
-      if (error.email) {
+      const status = error?.response?.status ?? error?.status;
+      const message = error?.response?.data?.message ?? error?.message;
+
+      if (status === 429) {
+        toast.error(
+          message || "Daily email limit reached. Please try again tomorrow.",
+        );
+      } else if (error.email) {
         toast.error(error.email);
       } else {
-        toast.error(error.message);
+        toast.error(message);
       }
     }
   };
@@ -85,7 +91,9 @@ export function SignupForm({
       </div>
 
       {/* TITLE */}
-      <h1 className="text-4xl font-bold tracking-tight">{ mode === "signup" ? "Create account" : "Update your information"}</h1>
+      <h1 className="text-4xl font-bold tracking-tight">
+        {mode === "signup" ? "Create account" : "Update your information"}
+      </h1>
 
       <p className="mt-3 text-muted-foreground">
         Create your workspace and start collaborating in realtime.
@@ -178,7 +186,7 @@ export function SignupForm({
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="h-12 w-full rounded-xl text-sm font-semibold"
+          className="h-12 w-full rounded-xl text-sm font-semibold hover:cursor-pointer"
         >
           {isSubmitting ? (
             <>

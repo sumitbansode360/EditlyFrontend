@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react"; // add useState
 import { ArrowLeft, MailCheck, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,12 +16,19 @@ type Props = {
 };
 
 export function EmailSent({ pendingUser, onBack }: Props) {
+  // lifted exhausted state
+  const [exhausted, setExhausted] = useState(false);
+
   const resendEmail = async () => {
     try {
       const res = await resendActivation(pendingUser.email);
       toast.success(res.message ?? "Activation email sent successfully");
     } catch (error: any) {
-      toast.error(error.message ?? "Unable to resend email");
+      const status = error?.response?.status ?? error?.status;
+      // only toast non‑429 errors; 429 is handled by the button
+      if (status !== 429) {
+        toast.error(error.message ?? "Unable to resend email");
+      }
       throw error;
     }
   };
@@ -68,7 +76,15 @@ export function EmailSent({ pendingUser, onBack }: Props) {
 
         {/* Resend */}
         <div className="w-full">
-          <ResendActivationButton onResend={resendEmail} />
+          <ResendActivationButton
+            onResend={resendEmail}
+            onLimitExceeded={() => {
+              setExhausted(false); // reset exhausted when user goes back
+              onBack();
+            }}
+            exhausted={exhausted}
+            setExhausted={setExhausted}
+          />
         </div>
 
         {/* Back */}
@@ -76,7 +92,10 @@ export function EmailSent({ pendingUser, onBack }: Props) {
           variant="ghost"
           size="sm"
           className="mt-3 text-muted-foreground hover:cursor-pointer"
-          onClick={onBack}
+          onClick={() => {
+            setExhausted(false); // reset exhausted when going back
+            onBack();
+          }}
         >
           <ArrowLeft className="mr-1.5 size-3.5" />
           Want to update your information?
