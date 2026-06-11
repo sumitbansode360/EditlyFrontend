@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const response = await loginUser({ username: data.email, password: data.password });
       login(response);
-      toast.success("Welcome back! Login successful.");
+      toast.success("Login successful!");
       router.push("/home");
     } catch (error: any) {
       toast.error(error.message);
