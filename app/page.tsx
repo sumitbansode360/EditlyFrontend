@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import AuthHeroSection from "@/components/auth/AuthHeroSection";
-import { loginUser } from "@/lib/api/auth";
-import { useUser } from "@/lib/api/UserContext";
+import { useUser } from "@/context/UserContext";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -38,12 +37,11 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginSchemaType) => {
     try {
-      const response = await loginUser({ username: data.email, password: data.password });
-      login(response);
+      await login(data.email, data.password);
       toast.success("Login successful!");
       router.push("/home");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.detail || error.message || "Login failed");
     }
   };
 

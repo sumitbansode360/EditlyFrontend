@@ -25,17 +25,6 @@ export const signupUser = async (data: SignupPayload): Promise<AuthResponse> => 
   }
 };
 
-export const loginUser = async (data: LoginPayload): Promise<LoginResponse> => {
-  try {
-    const response = await axios.post(`${API_URL}/api/token/`, data);
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.detail || "Invalid email or password"
-    );
-  }
-};
-
 export const resendActivation = async (email: string): Promise<AuthResponse> => {
   try {
     const response = await axios.post(`${API_URL}/api/auth/resend-activation-email/`, { email });

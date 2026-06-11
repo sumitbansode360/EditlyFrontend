@@ -35,13 +35,13 @@ export interface LoginResponse {
   user: User;
 }
 
-export type AuthContextType = {
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (data: LoginResponse) => void;
-  logout: () => void;
   isLoading: boolean;
-};
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
 export interface LoginPayload {
   username: string; // Maps from UI email
