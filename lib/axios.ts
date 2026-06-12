@@ -1,9 +1,8 @@
 // lib/axios.ts
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL; // e.g. 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// In-memory access token
 let accessToken: string | null = null;
 let refreshPromise: Promise<string> | null = null;
 
@@ -11,46 +10,69 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+// Public API endpoints – no Authorization header and no refresh on 401
+const publicApiEndpoints = [
+  '/api/token/',
+  '/api/token/refresh/',
+  '/api/auth/register/',
+  '/api/auth/activate/',
+  '/api/auth/resend-activation-email/',
+  '/api/auth/forgot-password/',
+  '/api/auth/reset-password/',
+  '/api/auth/update-pending-user/',
+];
+
+const isPublicApiEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return publicApiEndpoints.some(endpoint => url.includes(endpoint));
+};
+
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: false, // not using cookies
+  withCredentials: false,
 });
 
-// Request interceptor – attach access token
+// Request interceptor – attach token only for non-public endpoints
 api.interceptors.request.use((config) => {
-  if (accessToken) {
+  if (accessToken && !isPublicApiEndpoint(config.url)) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 });
 
-// Response interceptor – handle 401 by refreshing token
+// Response interceptor – refresh only for non-public endpoints
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
 
-      try {
-        if (!refreshPromise) {
-          refreshPromise = refreshAccessToken();
-        }
-        const newAccessToken = await refreshPromise;
-        refreshPromise = null;
-        setAccessToken(newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        refreshPromise = null;
-        setAccessToken(null);
-        // Clear stored tokens and redirect to login
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/';
-        return Promise.reject(refreshError);
-      }
+    // If it's a public endpoint or already retried, just reject
+    if (
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      isPublicApiEndpoint(originalRequest.url)
+    ) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    originalRequest._retry = true;
+
+    try {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken();
+      }
+      const newAccessToken = await refreshPromise;
+      refreshPromise = null;
+      setAccessToken(newAccessToken);
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      refreshPromise = null;
+      setAccessToken(null);
+      localStorage.removeItem('refresh_token');
+      window.location.href = '/';
+      return Promise.reject(refreshError);
+    }
   }
 );
 
