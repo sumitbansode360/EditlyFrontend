@@ -3,6 +3,7 @@
 
 import { useUser } from "@/context/UserContext";
 import { useRouter, usePathname } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 interface ProtectedRouteProps {
@@ -35,8 +36,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Global loading state while checking token/session status
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
+      <div className="flex flex-col items-center justify-center h-screen gap-3">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-sm font-medium text-muted-foreground">Loading...</p>
       </div>
     );
   }
