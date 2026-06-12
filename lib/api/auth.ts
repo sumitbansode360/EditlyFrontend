@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, LoginPayload, SignupPayload, LoginResponse } from "@/types/auth";
+import { AuthResponse, LoginPayload, SignupPayload, LoginResponse, ForgotPasswordResponse } from "@/types/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -60,3 +60,24 @@ export async function updatePendingUser(
 
   return response.data;
 }
+
+export const forgotPassword = async (
+  email: string
+): Promise<ForgotPasswordResponse> => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/auth/forgot-password/`,
+      {
+        email,
+      }
+    );
+
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to send password reset email"
+    );
+  }
+};

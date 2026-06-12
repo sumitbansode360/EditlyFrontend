@@ -57,3 +57,7 @@ export interface SignupPayload {
 }
 
 export type LoginSchemaType = Pick<SignupSchemaType, "email" | "password">;
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
