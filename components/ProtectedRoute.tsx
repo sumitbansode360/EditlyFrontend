@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const publicRoutes = ["/", "/signup", "/activate", "/forgot-password"];
+  const publicRoutes = ["/", "/signup", "/activate", "/forgot-password", "/reset-password"];
   const isPublicRoute = publicRoutes.some((route) => 
     route === "/" ? pathname === "/" : pathname.startsWith(route)
   );
