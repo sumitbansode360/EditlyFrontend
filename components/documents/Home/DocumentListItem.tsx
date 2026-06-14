@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/lib/utils/formatDate";
 
 
 import { DocumentListItem as DocType } from "@/types/document";
