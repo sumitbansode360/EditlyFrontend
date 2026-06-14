@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { Plus, Loader2 } from "lucide-react";
@@ -20,11 +20,27 @@ type Props = {
   documents: DocType[];
 };
 
+const VIEW_STORAGE_KEY = "editly_doc_view_pref";
+
 export function DocumentList({
   documents,
 }: Props) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
+
+  // Industry Method: Handle persistence in useEffect to avoid hydration mismatch
+  useEffect(() => {
+    const savedView = sessionStorage.getItem(VIEW_STORAGE_KEY);
+    if (savedView === "grid" || savedView === "list") {
+      setView(savedView);
+    }
+  }, []);
+
+  const handleViewChange = (newView: "grid" | "list") => {
+    setView(newView);
+    sessionStorage.setItem(VIEW_STORAGE_KEY, newView);
+  };
 
   const handleCreateDocument = async () => {
     try {
@@ -43,10 +59,6 @@ export function DocumentList({
     } finally {
     }
   };
-
-  const [view, setView] = useState<"grid" | "list">(
-    "grid"
-  );
 
   if (documents.length === 0) {
     return <EmptyDocuments />;
@@ -79,7 +91,7 @@ export function DocumentList({
         <div className="flex items-center gap-3">
           <DocumentViewToggle
             view={view}
-            onChange={setView}
+            onChange={handleViewChange}
           />
 
           <Button
