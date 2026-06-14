@@ -42,9 +42,13 @@ export const getDocument = async (id: string): Promise<Document> => {
  */
 export const createDocument = async (
   data: CreateDocumentRequest
-): Promise<Document> => {
+): Promise<{
+  message: string;
+  id: string;
+  data: Document;
+}> => {
   try {
-    const response = await api.post<Document>("/api/documents/", data);
+    const response = await api.post("/api/documents/", data);
     return response.data;
   } catch (error: any) {
     throw new Error(

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { createDocument } from "@/lib/api/document";
 
 import { DocumentGrid } from "./DocumentGrid";
 import { DocumentListItem } from "./DocumentListItem";
@@ -12,6 +14,7 @@ import { DocumentViewToggle } from "./DocumentViewToggle";
 import { EmptyDocuments } from "./EmptyDocuments";
 
 import { DocumentListItem as DocType } from "@/types/document";
+import { toast } from "sonner";
 
 type Props = {
   documents: DocType[];
@@ -20,6 +23,27 @@ type Props = {
 export function DocumentList({
   documents,
 }: Props) {
+  const router = useRouter();
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateDocument = async () => {
+    try {
+      setIsCreating(true);
+      const response = await createDocument({
+        title: "Untitled Document",
+      });
+      // Redirect user to the newly created document's editor
+      if (response.message){
+        toast.success(response.message)
+      }
+      router.push(`/documents/${response.id}`);
+    } catch (error) {
+      console.error("Failed to create document:", error);
+      setIsCreating(false);
+    } finally {
+    }
+  };
+
   const [view, setView] = useState<"grid" | "list">(
     "grid"
   );
@@ -30,6 +54,16 @@ export function DocumentList({
 
   return (
     <section className="space-y-6">
+      {/* FULL PAGE LOADER OVERLAY */}
+      {isCreating && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/60 backdrop-blur-md">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-lg font-medium animate-pulse">Creating your document...</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -51,9 +85,15 @@ export function DocumentList({
           <Button
             size="sm"
             className="h-10 rounded-lg px-4"
+            onClick={handleCreateDocument}
+            disabled={isCreating}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            New Document
+            {isCreating ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
+            {isCreating ? "Creating..." : "New Document"}
           </Button>
         </div>
       </div>
