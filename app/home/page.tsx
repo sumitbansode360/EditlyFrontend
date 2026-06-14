@@ -1,28 +1,53 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
-import { DocumentList } from "@/components/documents/Home/DocumentList";
-import { documents } from "@/data/documents";
-import { useUser } from "@/context/UserContext";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
+import { DocumentList } from "@/components/documents/Home/DocumentList";
+import Navbar from "@/components/Navbar";
+import { useUser } from "@/context/UserContext";
+import { getDocuments } from "@/lib/api/document";
+import { DocumentListItem } from "@/types/document";
 
 function Home() {
   const router = useRouter();
-  const { logout } = useUser();
-  const { isAuthenticated } = useUser();
+  const { logout, isAuthenticated, user } = useUser();
+  const [docs, setDocs] = useState<DocumentListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDocs = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getDocuments();
+      setDocs(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load documents");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDocs();
+    }
+  }, [isAuthenticated, fetchDocs]);
+
   const login = () => {
     router.push("/login");
   };
-  
-  const { user } = useUser();
+
   const userDetails = {
     name: user?.first_name + " " + user?.last_name,
-    isAuthenticated: isAuthenticated
-  }
+    isAuthenticated: !!isAuthenticated
+  };
 
   return (
     <>
-      <Navbar onLogout={logout} onLogin={login} user={userDetails}/>
+      <Navbar onLogout={logout} onLogin={login} user={userDetails} />
       <div className="mx-auto max-w-7xl px-6 py-12">
         {/* Page Header */}
         <section className="mb-10">
@@ -37,7 +62,19 @@ function Home() {
         </section>
 
         {/* Documents */}
-        <DocumentList documents={documents} />
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-sm text-muted-foreground">Loading documents...</p>
+          </div>
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-6 text-center text-destructive">
+            <p className="font-medium">Error</p>
+            <p className="text-sm opacity-90">{error}</p>
+          </div>
+        ) : (
+          <DocumentList documents={docs} />
+        )}
       </div>
     </>
   );

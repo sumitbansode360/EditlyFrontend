@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/utils/formatDate";
 
 import {
   DropdownMenu,
@@ -25,10 +26,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { DocumentItem } from "@/types/document";
+import { DocumentListItem as DocType } from "@/types/document";
 
 type Props = {
-  document: DocumentItem;
+  document: DocType;
 };
 
 export function DocumentGrid({ document }: Props) {
@@ -119,17 +120,17 @@ export function DocumentGrid({ document }: Props) {
             </h3>
 
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Edited {document.updatedAt}
+              Updated {formatDate(document.updated_at)}
             </p>
           </div>
 
           {/* METADATA */}
           <div className="space-y-1 border-t pt-2">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <User className="h-3 w-3" />
+              <User className="h-3.5 w-3.5" />
 
               <span className="line-clamp-1 text-[11px]">
-                Owner: {document.owner}
+                {document.owner_name}
               </span>
             </div>
 
@@ -137,7 +138,7 @@ export function DocumentGrid({ document }: Props) {
               <Calendar className="h-3.5 w-3.5" />
 
               <span className="text-[11px]">
-                Created {document.createdAt}
+                Created {formatDate(document.created_at)}
               </span>
             </div>
           </div>

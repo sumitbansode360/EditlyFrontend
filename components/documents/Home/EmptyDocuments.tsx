@@ -18,7 +18,7 @@ export function EmptyDocuments() {
         writing with your team in realtime.
       </p>
 
-      <Button className="mt-6 rounded-xl">
+      <Button className="mt-6 rounded-xl h-10 px-4">
         <Plus className="mr-2 h-4 w-4" />
         Create Document
       </Button>

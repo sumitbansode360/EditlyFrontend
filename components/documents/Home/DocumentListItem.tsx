@@ -24,11 +24,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDate } from "@/utils/formatDate";
 
-import { DocumentItem } from "@/types/document";
+
+import { DocumentListItem as DocType } from "@/types/document";
 
 type Props = {
-  document: DocumentItem;
+  document: DocType;
 };
 
 export function DocumentListItem({ document }: Props) {
@@ -50,17 +52,17 @@ export function DocumentListItem({ document }: Props) {
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
-                <span>{document.owner}</span>
+                <span>{document.owner_name}</span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Updated {document.updatedAt}</span>
+                <span>Updated {formatDate(document.updated_at)}</span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <FileText className="h-3.5 w-3.5" />
-                <span>Created {document.createdAt}</span>
+                <span>Created {formatDate(document.created_at)}</span>
               </div>
             </div>
           </div>

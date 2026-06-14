@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { DocumentGrid } from "./DocumentGrid";
 import { DocumentListItem } from "./DocumentListItem";
 import { DocumentViewToggle } from "./DocumentViewToggle";
+import { EmptyDocuments } from "./EmptyDocuments";
 
-import { DocumentItem } from "@/types/document";
+import { DocumentListItem as DocType } from "@/types/document";
 
 type Props = {
-  documents: DocumentItem[];
+  documents: DocType[];
 };
 
 export function DocumentList({
@@ -22,6 +23,10 @@ export function DocumentList({
   const [view, setView] = useState<"grid" | "list">(
     "grid"
   );
+
+  if (documents.length === 0) {
+    return <EmptyDocuments />;
+  }
 
   return (
     <section className="space-y-6">

@@ -4,6 +4,7 @@ export interface DocumentListItem {
   id: string; // UUID
   title: string;
   owner: string; // UUID of the user
+  owner_name: string;
   created_at: string;
   updated_at: string;
 }
