@@ -9,10 +9,7 @@ import {
   User,
 } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/utils/formatDate";
-
+import Link from "next/link";
 
 import { DocumentListItem as DocType } from "@/types/document";
 
@@ -35,80 +32,78 @@ type Props = {
 
 export function DocumentListItem({ document }: Props) {
   return (
-    <Card className="group overflow-hidden rounded-xl border bg-background transition-all duration-200 hover:border-primary/40 hover:shadow-sm">
-      <CardContent className="p-0">
-        <div className="flex items-center gap-4 p-4">
-          {/* FILE ICON */}
-          <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md border bg-muted/30">
-            <FileText className="h-7 w-7 text-muted-foreground" />
-          </div>
+    <Link href={`/documents/${document.id}`}>
+      <Card className="group overflow-hidden rounded-xl border bg-background transition-all duration-200 hover:border-primary/40 hover:shadow-sm">
+        <CardContent className="p-0">
+          <div className="flex items-center gap-4 p-4">
+            {/* FILE ICON */}
+            <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md border bg-muted/30">
+              <FileText className="h-7 w-7 text-muted-foreground" />
+            </div>
 
-          {/* DOCUMENT INFO */}
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-1 text-sm font-medium">
-              {document.title}
-            </h3>
+            {/* DOCUMENT INFO */}
+            <div className="min-w-0 flex-1">
+              <h3 className="line-clamp-1 text-sm font-medium">
+                {document.title}
+              </h3>
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                <span>{document.owner_name}</span>
-              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5" />
+                  <span>{document.owner_name}</span>
+                </div>
 
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Updated {formatDate(document.updated_at)}</span>
-              </div>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Updated {formatDate(document.updated_at)}</span>
+                </div>
 
-              <div className="flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Created {formatDate(document.created_at)}</span>
+                <div className="flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Created {formatDate(document.created_at)}</span>
+                </div>
               </div>
             </div>
+
+            {/* ACTIONS */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  onClick={(e) => e.stopPropagation()}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem className="cursor-pointer">
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Rename
+                </DropdownMenuItem>
+                <Link href={`/documents/${document.id}`}>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Open Document
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem className="cursor-pointer text-red-500 focus:text-red-500">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
-          {/* ACTIONS */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="end"
-              className="w-52 rounded-xl"
-            >
-              <DropdownMenuLabel>
-                Document Actions
-              </DropdownMenuLabel>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem className="cursor-pointer">
-                <Pencil className="mr-2 h-4 w-4" />
-                Rename
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className="cursor-pointer">
-                <FileText className="mr-2 h-4 w-4" />
-                Open Document
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem className="cursor-pointer text-red-500 focus:text-red-500">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
