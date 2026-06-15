@@ -96,7 +96,7 @@ export function DocumentList({
 
           <Button
             size="sm"
-            className="h-10 rounded-lg px-4"
+            className="h-10 rounded-lg px-4 cursor-pointer"
             onClick={handleCreateDocument}
             disabled={isCreating}
           >
