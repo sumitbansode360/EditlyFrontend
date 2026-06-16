@@ -27,6 +27,7 @@ import Link from "next/link";
 
 import { DocumentListItem as DocType } from "@/types/document";
 import { RenameDocumentDialog } from "./RenameDocumentDialog";
+import { DeleteDocumentDialog } from "./DeleteDocumentDialog";
 
 type Props = {
   document: DocType;
@@ -34,6 +35,7 @@ type Props = {
 
 export function DocumentListItem({ document }: Props) {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
@@ -110,7 +112,15 @@ export function DocumentListItem({ document }: Props) {
                 </Link>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem className="cursor-pointer text-red-500 focus:text-red-500">
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-500 focus:text-red-500"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDeleteOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -125,6 +135,14 @@ export function DocumentListItem({ document }: Props) {
         onOpenChange={(open) => {
           setIsRenameOpen(open);
           if (!open) setIsDropdownOpen(false); // Ensure dropdown closes if dialog is dismissed
+        }}
+      />
+      <DeleteDocumentDialog
+        document={document}
+        isOpen={isDeleteOpen}
+        onOpenChange={(open) => {
+          setIsDeleteOpen(open);
+          if (!open) setIsDropdownOpen(false);
         }}
       />
     </>
