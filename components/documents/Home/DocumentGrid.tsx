@@ -48,7 +48,7 @@ export function DocumentGrid({ document }: Props) {
                   onClick={(e) => e.stopPropagation()}
                   size="icon"
                   variant="secondary"
-                  className="h-8 w-8 rounded-lg shadow-sm"
+                  className="h-8 w-8 rounded-lg shadow-sm cursor-pointer"
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
