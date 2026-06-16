@@ -22,3 +22,11 @@ export interface UpdateDocumentRequest {
   title?: string;
   content?: any;
 }
+
+export interface DocumentContextType {
+  documents: DocumentListItem[];
+  fetchDocs: () => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+  refreshDocuments: () => Promise<void>;
+}

@@ -1,7 +1,7 @@
 // context/UserContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import api, { setAccessToken } from "@/lib/axios";
 import { User, AuthContextType } from "@/types/auth";
 
@@ -44,16 +44,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     restoreSession();
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     const response = await api.post('/api/token/', { username, password });
     const { access, refresh, user } = response.data; // Simple JWT returns access, refresh, and optionally user
 
     setAccessToken(access);
     localStorage.setItem('refresh_token', refresh);
     setUser(user);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
@@ -66,15 +66,18 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('refresh_token');
       setUser(null);
     }
-  };
+  }, []);
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-  };
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      logout,
+    }),
+    [user, isLoading, login, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

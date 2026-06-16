@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Calendar,
   FileText,
@@ -25,48 +26,54 @@ import { formatDate } from "@/lib/utils/formatDate";
 import Link from "next/link";
 
 import { DocumentListItem as DocType } from "@/types/document";
+import { RenameDocumentDialog } from "./RenameDocumentDialog";
 
 type Props = {
   document: DocType;
 };
 
 export function DocumentListItem({ document }: Props) {
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
-    <Link href={`/documents/${document.id}`}>
+    <>
       <Card className="group overflow-hidden rounded-xl border bg-background transition-all duration-200 hover:border-primary/40 hover:shadow-sm">
         <CardContent className="p-0">
           <div className="flex items-center gap-4 p-4">
             {/* FILE ICON */}
-            <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md border bg-muted/30">
-              <FileText className="h-7 w-7 text-muted-foreground" />
-            </div>
+            <Link href={`/documents/${document.id}`} className="flex flex-1 items-center gap-4 min-w-0">
+              <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-md border bg-muted/30">
+                <FileText className="h-7 w-7 text-muted-foreground" />
+              </div>
 
-            {/* DOCUMENT INFO */}
-            <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-1 text-sm font-medium">
-                {document.title}
-              </h3>
+              {/* DOCUMENT INFO */}
+              <div className="min-w-0 flex-1">
+                <h3 className="line-clamp-1 text-sm font-medium">
+                  {document.title}
+                </h3>
 
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5" />
-                  <span>{document.owner_name}</span>
-                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5" />
+                    <span>{document.owner_name}</span>
+                  </div>
 
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>Updated {formatDate(document.updated_at)}</span>
-                </div>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>Updated {formatDate(document.updated_at)}</span>
+                  </div>
 
-                <div className="flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" />
-                  <span>Created {formatDate(document.created_at)}</span>
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Created {formatDate(document.created_at)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* ACTIONS */}
-            <DropdownMenu>
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   onClick={(e) => e.stopPropagation()}
@@ -83,7 +90,15 @@ export function DocumentListItem({ document }: Props) {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsRenameOpen(true); // Open the dialog
+                    setIsDropdownOpen(false); // Close the dropdown menu
+                  }}
+                >
                   <Pencil className="mr-2 h-4 w-4" />
                   Rename
                 </DropdownMenuItem>
@@ -104,6 +119,14 @@ export function DocumentListItem({ document }: Props) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+      <RenameDocumentDialog
+        document={document}
+        isOpen={isRenameOpen}
+        onOpenChange={(open) => {
+          setIsRenameOpen(open);
+          if (!open) setIsDropdownOpen(false); // Ensure dropdown closes if dialog is dismissed
+        }}
+      />
+    </>
   );
 }

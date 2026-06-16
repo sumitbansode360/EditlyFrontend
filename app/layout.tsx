@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { UserProvider } from "@/context/UserContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DocProvider } from "@/context/DocumentContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,12 +27,12 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased">
         <UserProvider>
-          <TooltipProvider>
-            <ProtectedRoute>
-              {children}
-            </ProtectedRoute>
-            <Toaster position="top-right" richColors />
-          </TooltipProvider>
+          <DocProvider>
+            <TooltipProvider>
+              <ProtectedRoute>{children}</ProtectedRoute>
+              <Toaster position="top-right" richColors />
+            </TooltipProvider>
+          </DocProvider>
         </UserProvider>
       </body>
     </html>

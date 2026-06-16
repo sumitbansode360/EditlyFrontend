@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Calendar,
   FileText,
@@ -25,16 +26,69 @@ import {
 import Link from "next/link";
 
 import { DocumentListItem as DocType } from "@/types/document";
+import { RenameDocumentDialog } from "./RenameDocumentDialog";
 
 type Props = {
   document: DocType;
 };
 
 export function DocumentGrid({ document }: Props) {
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
-    <Link href={`/documents/${document.id}`}>
+    <>
       <Card className="group w-full overflow-hidden rounded-lg border bg-background p-0 transition-all duration-200 hover:border-primary/50 hover:shadow-md">
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
+          {/* ACTION MENU - Moved outside Link and given higher z-index */}
+          <div className="absolute right-3 top-3 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100"> 
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  onClick={(e) => e.stopPropagation()}
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 rounded-lg shadow-sm"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsRenameOpen(true); // Open the dialog
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Rename
+                </DropdownMenuItem>
+
+                <Link href={`/documents/${document.id}`}>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Open Document
+                  </DropdownMenuItem>
+                </Link>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem className="cursor-pointer text-red-500 focus:text-red-500">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <Link href={`/documents/${document.id}`} className="block">
           {/* DOCUMENT PREVIEW */}
           <div className="relative">
             <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-4 md:h-48">
@@ -63,47 +117,6 @@ export function DocumentGrid({ document }: Props) {
 
                   <div className="h-2 w-[60%] rounded bg-muted-foreground/10" />
                 </div>
-              </div>
-
-              {/* ACTION MENU */}
-              <div className="absolute right-3 top-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      onClick={(e) => e.stopPropagation()}
-                      size="icon"
-                      variant="secondary"
-                      className="h-8 w-8 rounded-lg shadow-sm"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end" className="w-52 rounded-xl">
-                    <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem className="cursor-pointer">
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Rename
-                    </DropdownMenuItem>
-
-                    <Link href={`/documents/${document.id}`}>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <FileText className="mr-2 h-4 w-4" />
-                        Open Document
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem className="cursor-pointer text-red-500 focus:text-red-500">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -140,8 +153,17 @@ export function DocumentGrid({ document }: Props) {
               </div>
             </div>
           </div>
+          </Link>
         </CardContent>
       </Card>
-    </Link>
+      <RenameDocumentDialog
+        document={document}
+        isOpen={isRenameOpen}
+        onOpenChange={(open) => {
+          setIsRenameOpen(open);
+          if (!open) setIsDropdownOpen(false); // Ensure dropdown closes if dialog is dismissed
+        }}
+      />
+    </>
   );
 }

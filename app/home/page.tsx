@@ -3,32 +3,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-
 import { DocumentList } from "@/components/documents/Home/DocumentList";
 import Navbar from "@/components/Navbar";
 import { useUser } from "@/context/UserContext";
-import { getDocuments } from "@/lib/api/document";
-import { DocumentListItem } from "@/types/document";
+import { useDocuments } from "@/context/DocumentContext";
+
 
 function Home() {
   const router = useRouter();
   const { logout, isAuthenticated, user } = useUser();
-  const [docs, setDocs] = useState<DocumentListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDocs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await getDocuments();
-      setDocs(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load documents");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { documents, fetchDocs, isLoading, error } = useDocuments();
+  
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -73,7 +58,7 @@ function Home() {
             <p className="text-sm opacity-90">{error}</p>
           </div>
         ) : (
-          <DocumentList documents={docs} />
+          <DocumentList documents={documents} />
         )}
       </div>
     </>
