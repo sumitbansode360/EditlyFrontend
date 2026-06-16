@@ -95,10 +95,9 @@ export function DocumentList({
           />
 
           <Button
-            size="sm"
-            className="h-10 rounded-lg px-4 cursor-pointer"
             onClick={handleCreateDocument}
             disabled={isCreating}
+            className="h-10 rounded-xl px-6 font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-95 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isCreating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
