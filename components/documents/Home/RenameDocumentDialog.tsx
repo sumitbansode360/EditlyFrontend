@@ -91,20 +91,20 @@ export function RenameDocumentDialog({
               autoFocus
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
-              className="h-10 hover:cursor-pointer"
+              className="flex-1 h-10 hover:cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !title.trim() || title === document.title}
-              className="h-10 hover:cursor-pointer"
+              className="flex-1 h-10 hover:cursor-pointer"
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
