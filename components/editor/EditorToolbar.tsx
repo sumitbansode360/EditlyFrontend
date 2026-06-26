@@ -1,4 +1,3 @@
-// src/components/editor/EditorToolbar.tsx
 "use client";
 
 import { Editor } from "@tiptap/react";
@@ -16,7 +15,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Save, User, Settings, LogIn, LogOut } from "lucide-react";
+import { Save, User, Settings, LogOut } from "lucide-react";
+import { User as AppUser } from "@/types/auth";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 interface Props {
   editor: Editor | null;
@@ -25,21 +27,57 @@ interface Props {
   lastSaved: Date | null;
   isSaving: boolean;
   onSave: () => void;
+  user: AppUser;
+}
+
+function getInitials(user: AppUser): string {
+  const fromName = `${user.first_name} ${user.last_name}`
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  if (fromName) return fromName;
+  return user.email.slice(0, 2).toUpperCase();
 }
 
 export default function EditorToolbar({
-  editor, docTitle, onTitleChange, lastSaved, isSaving, onSave,
+  editor,
+  docTitle,
+  onTitleChange,
+  lastSaved,
+  isSaving,
+  onSave,
+  user,
 }: Props) {
+  const { logout } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
   return (
     <div className="flex flex-col bg-background border-b border-border shadow-sm z-10 flex-shrink-0">
-      {/* Top row: doc icon + title + save status | save button + avatar */}
       <div className="flex items-center justify-between px-4 py-2 gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* Document icon */}
           <div className="w-8 h-8 rounded bg-foreground flex items-center justify-center flex-shrink-0">
             <svg viewBox="0 0 24 24" className="w-4 h-4">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" className="fill-background" />
-              <path d="M14 2v6h6M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" className="stroke-background" />
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                className="fill-background"
+              />
+              <path
+                d="M14 2v6h6M8 13h8M8 17h5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                fill="none"
+                strokeLinecap="round"
+                className="stroke-background"
+              />
             </svg>
           </div>
 
@@ -61,18 +99,17 @@ export default function EditorToolbar({
             {isSaving ? "Saving…" : "Save"}
           </Button>
 
-          {/* Profile dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="w-8 h-8 cursor-pointer ring-2 ring-transparent hover:ring-border transition-all">
                 <AvatarFallback className="bg-muted text-foreground text-xs font-semibold select-none">
-                  U
+                  {getInitials(user)}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                user@example.com
+                {user.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="gap-2 text-sm cursor-pointer">
@@ -82,10 +119,10 @@ export default function EditorToolbar({
                 <Settings className="w-3.5 h-3.5" /> Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-sm cursor-pointer">
-                <LogIn className="w-3.5 h-3.5" /> Login
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-sm cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                className="gap-2 text-sm cursor-pointer text-destructive focus:text-destructive"
+                onClick={handleLogout}
+              >
                 <LogOut className="w-3.5 h-3.5" /> Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

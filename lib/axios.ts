@@ -10,6 +10,8 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+export const getAccessToken = (): string | null => accessToken;
+
 // Public API endpoints – no Authorization header and no refresh on 401
 const publicApiEndpoints = [
   '/api/token/',

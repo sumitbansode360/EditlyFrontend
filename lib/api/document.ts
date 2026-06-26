@@ -78,6 +78,26 @@ export const updateDocument = async (
 };
 
 /**
+ * Replaces a document's title and content.
+ * Uses PUT for full updates (e.g. manual save from the editor).
+ * @param id - The UUID of the document.
+ * @param data - The fields to save.
+ */
+export const putDocument = async (
+  id: string,
+  data: UpdateDocumentRequest
+): Promise<Document> => {
+  try {
+    const response = await api.put<Document>(`/api/documents/${id}/`, data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.detail || "Failed to save document"
+    );
+  }
+};
+
+/**
  * Deletes a document by its ID.
  */
 export const deleteDocument = async (id: string): Promise<void> => {

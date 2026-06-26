@@ -1,6 +1,12 @@
-import { DocumentItem } from "@/types/document";
+interface MockDocument {
+  id: string;
+  title: string;
+  owner: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const documents: DocumentItem[] = [
+export const documents: MockDocument[] = [
   {
     id: "1",
     title: "Project Requirements",
