@@ -90,6 +90,7 @@ export function useDocumentCollaboration(
       wsProvider.off("sync", handleSync);
       wsProvider.awareness.off("change", updateOnlineUsers);
       wsProvider.destroy();
+      ydoc.destroy(); 
       setProvider(null);
       setSynced(false);
       setConnected(false);
