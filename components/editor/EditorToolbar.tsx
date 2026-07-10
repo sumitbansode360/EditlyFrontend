@@ -4,6 +4,7 @@ import { Editor } from "@tiptap/react";
 import DocumentTitle from "./DocumentTitle";
 import LastSaved from "./LastSaved";
 import EditorMenuBar from "./EditorMenuBar";
+import ShareDialog from "./ShareDialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,6 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Save, User, Settings, LogOut } from "lucide-react";
 import { User as AppUser } from "@/types/auth";
+import { DocumentAccessRole } from "@/types/collaboration";
+import { RoleBadge } from "@/components/shared/RoleBadge";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -28,6 +31,8 @@ interface Props {
   isSaving: boolean;
   onSave: () => void;
   user: AppUser;
+  documentId: string;
+  role: DocumentAccessRole | null;
 }
 
 function getInitials(user: AppUser): string {
@@ -51,9 +56,14 @@ export default function EditorToolbar({
   isSaving,
   onSave,
   user,
+  documentId,
+  role,
 }: Props) {
   const { logout } = useUser();
   const router = useRouter();
+
+  const isOwner = role === "owner";
+  const isReadOnly = role === "viewer";
 
   const handleLogout = async () => {
     await logout();
@@ -82,22 +92,33 @@ export default function EditorToolbar({
           </div>
 
           <div className="flex flex-col min-w-0">
-            <DocumentTitle value={docTitle} onChange={onTitleChange} />
+            <DocumentTitle value={docTitle} onChange={onTitleChange} readOnly={isReadOnly} />
             <LastSaved lastSaved={lastSaved} isSaving={isSaving} />
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSave}
-            disabled={isSaving}
-            className="h-7 gap-1.5 text-xs"
-          >
-            <Save className="w-3 h-3" />
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
+          {/* Only the owner can invite — matches the backend, which 404s
+              an invite call from anyone else. */}
+          {isOwner && <ShareDialog documentId={documentId} documentTitle={docTitle} />}
+
+          {/* Non-owners see what access level they have instead. */}
+          {!isOwner && role && (
+            <RoleBadge role={role} className="h-7 px-2.5 flex items-center" />
+          )}
+
+          {!isReadOnly && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSave}
+              disabled={isSaving}
+              className="h-7 gap-1.5 text-xs"
+            >
+              <Save className="w-3 h-3" />
+              {isSaving ? "Saving…" : "Save"}
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -131,7 +152,7 @@ export default function EditorToolbar({
       </div>
 
       <Separator />
-      <EditorMenuBar editor={editor} />
+      {!isReadOnly && <EditorMenuBar editor={editor} />}
     </div>
   );
 }

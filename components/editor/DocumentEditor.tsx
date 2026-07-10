@@ -24,6 +24,7 @@ import FontSize from "./extensions/FontSize";
 import EditorToolbar from "./EditorToolbar";
 import EditorCanvas from "./EditorCanvas";
 import OnlineUsersPanel from "./OnlineUsersPanel";
+import ReadOnlyBanner from "./ReadOnlyBanner";
 import { useUser } from "@/context/UserContext";
 import { getDocument, putDocument } from "@/lib/api/document";
 import { useDocumentCollaboration } from "@/hooks/useDocumentCollaboration";
@@ -98,9 +99,18 @@ function CollaborativeEditor({
   const [isSaving, setIsSaving] = useState(false);
   const hasSeededContent = useRef(false);
 
+  // Fail closed: if `role` is ever missing/unrecognized, treat the document
+  // as read-only rather than editable. The backend already gates who can
+  // reach this page at all (get_object() 403s a non-collaborator before we
+  // ever get here) — this is purely about what the UI lets you *do* once
+  // you're in.
+  const role = document.role ?? "viewer";
+  const isReadOnly = role === "viewer";
+
   const editor = useEditor(
     {
       immediatelyRender: false,
+      editable: !isReadOnly,
       extensions: buildEditorExtensions(ydoc, provider, collaborationUser),
       editorProps: {
         attributes: {
@@ -122,7 +132,7 @@ function CollaborativeEditor({
   }, [editor, synced, document.content]);
 
   const handleSave = useCallback(async () => {
-    if (isSaving || !editor) return;
+    if (isSaving || !editor || isReadOnly) return;
 
     setIsSaving(true);
     try {
@@ -139,7 +149,7 @@ function CollaborativeEditor({
     } finally {
       setIsSaving(false);
     }
-  }, [isSaving, editor, document.id, docTitle]);
+  }, [isSaving, editor, document.id, docTitle, isReadOnly]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -163,7 +173,11 @@ function CollaborativeEditor({
         isSaving={isSaving}
         onSave={handleSave}
         user={user}
+        documentId={document.id}
+        role={role}
       />
+
+      {isReadOnly && <ReadOnlyBanner />}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <EditorCanvas editor={editor} />
@@ -208,6 +222,10 @@ export default function DocumentEditor() {
         }
       } catch (error) {
         if (!cancelled) {
+          // A 403 lands here too (non-collaborator, or pending invite that
+          // hasn't been activated yet) — the backend's get_object() check
+          // is what actually enforces this; this message is just what the
+          // person sees.
           setLoadError(
             error instanceof Error ? error.message : "Failed to load document"
           );
