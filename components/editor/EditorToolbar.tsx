@@ -72,7 +72,7 @@ export default function EditorToolbar({
 
   return (
     <div className="flex flex-col bg-background border-b border-border shadow-sm z-10 flex-shrink-0">
-      <div className="flex items-center justify-between px-4 py-2 gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-4">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-8 h-8 rounded bg-foreground flex items-center justify-center flex-shrink-0">
             <svg viewBox="0 0 24 24" className="w-4 h-4">

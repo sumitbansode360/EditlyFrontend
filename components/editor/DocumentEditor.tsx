@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import FontSize from "./extensions/FontSize";
 import EditorToolbar from "./EditorToolbar";
 import EditorCanvas from "./EditorCanvas";
-import OnlineUsersPanel from "./OnlineUsersPanel";
+import CollaboratorsSidebar from "./CollaboratorsSidebar";
 import ReadOnlyBanner from "./ReadOnlyBanner";
 import { useUser } from "@/context/UserContext";
 import { getDocument, putDocument } from "@/lib/api/document";
@@ -171,7 +171,7 @@ function CollaborativeEditor({
         onTitleChange={setDocTitle}
         lastSaved={lastSaved}
         isSaving={isSaving}
-        onSave={handleSave}
+        onSave={handleSave} 
         user={user}
         documentId={document.id}
         role={role}
@@ -181,7 +181,9 @@ function CollaborativeEditor({
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <EditorCanvas editor={editor} />
-        <OnlineUsersPanel users={onlineUsers} connected={connected} />
+        {/* Inline collapsible panel on md+, floating-button + drawer on
+            mobile — see CollaboratorsSidebar for the breakpoint logic. */}
+        <CollaboratorsSidebar users={onlineUsers} connected={connected} />
       </div>
     </div>
   );

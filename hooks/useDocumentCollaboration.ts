@@ -13,6 +13,7 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:1234";
 function buildCollaborationUser(user: User): CollaborationUser {
   const name = `${user.first_name} ${user.last_name}`.trim() || user.email;
   return {
+    id: user.id,
     name,
     color: getUserColor(user.id),
   };
@@ -20,7 +21,7 @@ function buildCollaborationUser(user: User): CollaborationUser {
 
 export function useDocumentCollaboration(
   documentId: string | undefined,
-  user: User | null
+  user: User | null,
 ) {
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
   const [synced, setSynced] = useState(false);
@@ -31,7 +32,7 @@ export function useDocumentCollaboration(
 
   const collaborationUser = useMemo(
     () => (user ? buildCollaborationUser(user) : null),
-    [user]
+    [user],
   );
 
   useEffect(() => {
@@ -56,19 +57,44 @@ export function useDocumentCollaboration(
 
     const updateOnlineUsers = () => {
       const states = wsProvider.awareness.getStates();
-      const users: OnlineUser[] = [];
+
+      // Yjs awareness keys states by *connection* (clientId), so the same
+      // person open in two tabs produces two entries here. We want one row
+      // per person in the panel, so dedupe by their stable user id — falling
+      // back to name only if an older/incompatible client hasn't sent an id
+      // (keeps this from hard-breaking during a rolling deploy).
+      const byUserId = new Map<string, OnlineUser>();
 
       states.forEach((state, clientId) => {
         const userState = state.user as CollaborationUser | undefined;
         if (!userState?.name) return;
 
-        users.push({
+        const key = userState.id ?? userState.name;
+        const isThisConnectionMe = clientId === wsProvider.awareness.clientID;
+
+        const existing = byUserId.get(key);
+        if (existing) {
+          existing.sessionCount += 1;
+          existing.isCurrentUser = existing.isCurrentUser || isThisConnectionMe;
+          // Prefer this tab's own connection as the representative one,
+          // so "You" reliably resolves to something real.
+          if (isThisConnectionMe) {
+            existing.clientId = clientId;
+          }
+          return;
+        }
+
+        byUserId.set(key, {
+          id: key,
           clientId,
           name: userState.name,
           color: userState.color,
-          isCurrentUser: clientId === wsProvider.awareness.clientID,
+          isCurrentUser: isThisConnectionMe,
+          sessionCount: 1,
         });
       });
+
+      const users = Array.from(byUserId.values());
 
       users.sort((a, b) => {
         if (a.isCurrentUser) return -1;
@@ -90,7 +116,7 @@ export function useDocumentCollaboration(
       wsProvider.off("sync", handleSync);
       wsProvider.awareness.off("change", updateOnlineUsers);
       wsProvider.destroy();
-      ydoc.destroy(); 
+      ydoc.destroy();
       setProvider(null);
       setSynced(false);
       setConnected(false);

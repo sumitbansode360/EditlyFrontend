@@ -18,9 +18,15 @@ function getInitials(name: string): string {
     .join("");
 }
 
+/**
+ * Pure content — no outer width, border, or positioning. The responsive
+ * shell (CollaboratorsSidebar) decides whether this renders inline as a
+ * tablet/desktop panel or inside a mobile drawer, so this component just
+ * fills whatever box it's given.
+ */
 export default function OnlineUsersPanel({ users, connected }: Props) {
   return (
-    <aside className="w-64 flex-shrink-0 border-l border-border bg-background flex flex-col">
+    <div className="flex h-full flex-col">
       <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -28,9 +34,8 @@ export default function OnlineUsersPanel({ users, connected }: Props) {
             <h2 className="text-sm font-semibold truncate">Online now</h2>
           </div>
           <span
-            className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-              connected ? "text-emerald-600" : "text-muted-foreground"
-            }`}
+            className={`inline-flex items-center gap-1 text-[11px] font-medium ${connected ? "text-emerald-600" : "text-muted-foreground"
+              }`}
           >
             {connected ? (
               <Wifi className="w-3 h-3" />
@@ -53,7 +58,7 @@ export default function OnlineUsersPanel({ users, connected }: Props) {
         ) : (
           users.map((onlineUser) => (
             <div
-              key={onlineUser.clientId}
+              key={onlineUser.id}
               className="flex items-center gap-3 rounded-md border border-border/60 px-3 py-2 bg-card"
             >
               <div className="relative flex-shrink-0">
@@ -72,7 +77,14 @@ export default function OnlineUsersPanel({ users, connected }: Props) {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{onlineUser.name}</p>
+                <p className="text-sm font-medium truncate">
+                  {onlineUser.name}
+                  {onlineUser.sessionCount > 1 && (
+                    <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
+                      · {onlineUser.sessionCount} tabs
+                    </span>
+                  )}
+                </p>
                 <p className="text-[11px] text-muted-foreground">
                   {onlineUser.isCurrentUser ? "You" : "Editing"}
                 </p>
@@ -87,6 +99,6 @@ export default function OnlineUsersPanel({ users, connected }: Props) {
           ))
         )}
       </div>
-    </aside>
+    </div>
   );
 }
