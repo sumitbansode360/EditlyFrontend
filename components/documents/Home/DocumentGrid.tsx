@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 
 import { DocumentListItem as DocType } from "@/types/document";
+import { RoleBadge } from "@/components/shared/RoleBadge";
 import { RenameDocumentDialog } from "./RenameDocumentDialog";
 import { DeleteDocumentDialog } from "./DeleteDocumentDialog";
 
@@ -38,12 +39,19 @@ export function DocumentGrid({ document }: Props) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const canRename = document.role === "owner" || document.role === "editor";
+  const canDelete = document.role === "owner";
+  // "Owner" on every one of your own cards is just noise — only worth
+  // surfacing the role when it's telling you something you don't already
+  // know, i.e. a document that isn't yours.
+  const showRoleBadge = document.role && document.role !== "owner";
+
   return (
     <>
       <Card className="group w-full overflow-hidden rounded-lg border bg-background p-0 transition-all duration-200 hover:border-primary/50 hover:shadow-md">
         <CardContent className="p-0 relative">
           {/* ACTION MENU - Moved outside Link and given higher z-index */}
-          <div className="absolute right-3 top-3 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100"> 
+          <div className="absolute right-3 top-3 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -61,18 +69,20 @@ export function DocumentGrid({ document }: Props) {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsRenameOpen(true); // Open the dialog
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Rename
-                </DropdownMenuItem>
+                {canRename && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsRenameOpen(true); // Open the dialog
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Rename
+                  </DropdownMenuItem>
+                )}
 
                 <Link href={`/documents/${document.id}`}>
                   <DropdownMenuItem className="cursor-pointer">
@@ -81,89 +91,97 @@ export function DocumentGrid({ document }: Props) {
                   </DropdownMenuItem>
                 </Link>
 
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem 
-                  className="cursor-pointer text-red-500 focus:text-red-500"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsDeleteOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-500 focus:text-red-500"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDeleteOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
           <Link href={`/documents/${document.id}`} className="block">
-          {/* DOCUMENT PREVIEW */}
-          <div className="relative">
-            <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-4 md:h-48">
-              {/* DOCUMENT PAPER */}
-              <div className="mx-auto h-full w-[85%] rounded-sm border bg-background shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
-                {/* DOCUMENT HEADER */}
-                <div className="border-b px-4 py-3">
-                  <div className="h-3 w-24 rounded bg-muted-foreground/20" />
-                </div>
-
-                {/* DOCUMENT CONTENT */}
-                <div className="space-y-2 p-4">
-                  <div className="h-2 w-full rounded bg-muted-foreground/10" />
-
-                  <div className="h-2 w-[92%] rounded bg-muted-foreground/10" />
-
-                  <div className="h-2 w-[80%] rounded bg-muted-foreground/10" />
-
-                  <div className="pt-4">
-                    <div className="h-2 w-[70%] rounded bg-muted-foreground/10" />
+            {/* DOCUMENT PREVIEW */}
+            <div className="relative">
+              <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-4 md:h-48">
+                {/* DOCUMENT PAPER */}
+                <div className="mx-auto h-full w-[85%] rounded-sm border bg-background shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
+                  {/* DOCUMENT HEADER */}
+                  <div className="border-b px-4 py-3">
+                    <div className="h-3 w-24 rounded bg-muted-foreground/20" />
                   </div>
 
-                  <div className="h-2 w-full rounded bg-muted-foreground/10" />
+                  {/* DOCUMENT CONTENT */}
+                  <div className="space-y-2 p-4">
+                    <div className="h-2 w-full rounded bg-muted-foreground/10" />
 
-                  <div className="h-2 w-[85%] rounded bg-muted-foreground/10" />
+                    <div className="h-2 w-[92%] rounded bg-muted-foreground/10" />
 
-                  <div className="h-2 w-[60%] rounded bg-muted-foreground/10" />
+                    <div className="h-2 w-[80%] rounded bg-muted-foreground/10" />
+
+                    <div className="pt-4">
+                      <div className="h-2 w-[70%] rounded bg-muted-foreground/10" />
+                    </div>
+
+                    <div className="h-2 w-full rounded bg-muted-foreground/10" />
+
+                    <div className="h-2 w-[85%] rounded bg-muted-foreground/10" />
+
+                    <div className="h-2 w-[60%] rounded bg-muted-foreground/10" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* FILE INFO */}
-          <div className="space-y-2 p-3">
-            {/* TITLE */}
-            <div className="min-w-0">
-              <h3 className="line-clamp-1 text-[13px] font-medium leading-none">
-                {document.title}
-              </h3>
+            {/* FILE INFO */}
+            <div className="space-y-2 p-3">
+              {/* TITLE */}
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="line-clamp-1 text-[13px] font-medium leading-none min-w-0 flex-1">
+                    {document.title}
+                  </h3>
+                  {showRoleBadge && (
+                    <RoleBadge role={document.role} className="flex-shrink-0" />
+                  )}
+                </div>
 
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Updated {formatDate(document.updated_at)}
-              </p>
-            </div>
-
-            {/* METADATA */}
-            <div className="space-y-1 border-t pt-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <User className="h-3.5 w-3.5" />
-
-                <span className="line-clamp-1 text-[11px]">
-                  {document.owner_name}
-                </span>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Updated {formatDate(document.updated_at)}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5" />
+              {/* METADATA */}
+              <div className="space-y-1 border-t pt-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <User className="h-3.5 w-3.5" />
 
-                <span className="text-[11px]">
-                  Created {formatDate(document.created_at)}
-                </span>
+                  <span className="line-clamp-1 text-[11px]">
+                    {document.owner_name}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
+
+                  <span className="text-[11px]">
+                    Created {formatDate(document.created_at)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
           </Link>
         </CardContent>
       </Card>
