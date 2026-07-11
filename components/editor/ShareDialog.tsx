@@ -83,6 +83,7 @@ export default function ShareDialog({ documentId, documentTitle }: ShareDialogPr
       await inviteCollaborator(documentId, trimmed, role);
       toast.success(`Invite sent to ${trimmed}`);
       setEmail("");
+      setOpen(false);    
       loadCollaborators();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to send invite");
