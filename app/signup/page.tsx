@@ -5,10 +5,14 @@ import { EmailSent } from "@/components/auth/EmailSent";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { PendingUser, SignupStep } from "@/types/auth";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function SignupPage() {
   const [pendingUser, setPendingUser] = useState<PendingUser | null>(null);
   const [currentStep, setCurrentStep] = useState<SignupStep>("signup");
+  const searchParams = useSearchParams();
+  const prefillEmail = searchParams.get("email");
+
 
   // Restore from sessionStorage on mount
   useEffect(() => {
@@ -49,6 +53,7 @@ export default function SignupPage() {
               mode="signup"
               setPendingUser={setPendingUser}
               setCurrentStep={setCurrentStep}
+              prefillEmail={prefillEmail ?? ""}
             />
           )}
 
@@ -58,6 +63,7 @@ export default function SignupPage() {
               pendingUser={pendingUser}
               setPendingUser={setPendingUser}
               setCurrentStep={setCurrentStep}
+              prefillEmail={prefillEmail ?? ""}
             />
           )}
 

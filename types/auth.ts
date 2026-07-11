@@ -12,6 +12,7 @@ export type SignupStep = "signup" | "edit" | "verify";
 export interface SignupType {
   mode: SignupStep;
   pendingUser?: PendingUser | null;
+  prefillEmail?: string | "";
   setPendingUser: React.Dispatch<React.SetStateAction<PendingUser | null>>;
   setCurrentStep?: React.Dispatch<React.SetStateAction<SignupStep>>;
 }

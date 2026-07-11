@@ -24,6 +24,7 @@ export function SignupForm({
   pendingUser,
   setPendingUser,
   setCurrentStep,
+  prefillEmail,
 }: SignupType) {
   const {
     register,
@@ -34,7 +35,7 @@ export function SignupForm({
     resolver: zodResolver(signupSchema),
     mode: "onChange",
     defaultValues: {
-      email: pendingUser?.email ?? "",
+      email: pendingUser?.email ?? prefillEmail ?? "",
       first_name: pendingUser?.first_name ?? "",
       last_name: pendingUser?.last_name ?? "",
     },
