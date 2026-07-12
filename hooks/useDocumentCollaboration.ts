@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import { getAccessToken } from "@/lib/axios";
@@ -9,6 +9,10 @@ import { User } from "@/types/auth";
 import { CollaborationUser, OnlineUser } from "@/types/collaboration";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:1234";
+
+// How long a remote cursor can sit without moving before we fade it out.
+const IDLE_THRESHOLD_MS = 5000;
+const IDLE_CHECK_INTERVAL_MS = 1000;
 
 function buildCollaborationUser(user: User): CollaborationUser {
   const name = `${user.first_name} ${user.last_name}`.trim() || user.email;
@@ -27,6 +31,7 @@ export function useDocumentCollaboration(
   const [synced, setSynced] = useState(false);
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [idleUserIds, setIdleUserIds] = useState<Set<string>>(new Set());
 
   const ydoc = useMemo(() => new Y.Doc(), [documentId]);
 
@@ -34,6 +39,11 @@ export function useDocumentCollaboration(
     () => (user ? buildCollaborationUser(user) : null),
     [user],
   );
+
+  // clientId -> last-seen serialized cursor, to detect movement
+  const previousCursorsRef = useRef<Map<number, string>>(new Map());
+  // stable user key -> timestamp of last detected cursor movement
+  const lastActivityRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     if (!documentId || !user || !collaborationUser) {
@@ -57,12 +67,9 @@ export function useDocumentCollaboration(
 
     const updateOnlineUsers = () => {
       const states = wsProvider.awareness.getStates();
+      const now = Date.now();
 
-      // Yjs awareness keys states by *connection* (clientId), so the same
-      // person open in two tabs produces two entries here. We want one row
-      // per person in the panel, so dedupe by their stable user id — falling
-      // back to name only if an older/incompatible client hasn't sent an id
-      // (keeps this from hard-breaking during a rolling deploy).
+      // Dedupe by stable user id (see the multi-tab fix) while we're here.
       const byUserId = new Map<string, OnlineUser>();
 
       states.forEach((state, clientId) => {
@@ -72,12 +79,23 @@ export function useDocumentCollaboration(
         const key = userState.id ?? userState.name;
         const isThisConnectionMe = clientId === wsProvider.awareness.clientID;
 
+        // Track cursor movement per-connection, record activity against
+        // the person (not the connection) so any of their tabs counts.
+        const serializedCursor = state.cursor
+          ? JSON.stringify(state.cursor)
+          : null;
+        const prevSerialized = previousCursorsRef.current.get(clientId);
+        if (serializedCursor !== null && serializedCursor !== prevSerialized) {
+          lastActivityRef.current.set(key, now);
+        }
+        if (serializedCursor !== null) {
+          previousCursorsRef.current.set(clientId, serializedCursor);
+        }
+
         const existing = byUserId.get(key);
         if (existing) {
           existing.sessionCount += 1;
           existing.isCurrentUser = existing.isCurrentUser || isThisConnectionMe;
-          // Prefer this tab's own connection as the representative one,
-          // so "You" reliably resolves to something real.
           if (isThisConnectionMe) {
             existing.clientId = clientId;
           }
@@ -121,8 +139,32 @@ export function useDocumentCollaboration(
       setSynced(false);
       setConnected(false);
       setOnlineUsers([]);
+      setIdleUserIds(new Set());
+      previousCursorsRef.current.clear();
+      lastActivityRef.current.clear();
     };
   }, [documentId, user, ydoc, collaborationUser]);
+
+  // Separate timer loop: recompute who's idle every second. This has to be
+  // time-driven rather than purely reactive to awareness changes, since
+  // "5 seconds have passed with no new data" is exactly the condition we
+  // can't detect just by listening for new data.
+  useEffect(() => {
+    if (!provider) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const idle = new Set<string>();
+      lastActivityRef.current.forEach((lastActive, key) => {
+        if (now - lastActive > IDLE_THRESHOLD_MS) {
+          idle.add(key);
+        }
+      });
+      setIdleUserIds(idle);
+    }, IDLE_CHECK_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [provider]);
 
   return {
     ydoc,
@@ -131,5 +173,6 @@ export function useDocumentCollaboration(
     connected,
     onlineUsers,
     collaborationUser,
+    idleUserIds,
   };
 }

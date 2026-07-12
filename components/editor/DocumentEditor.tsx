@@ -57,6 +57,22 @@ function buildEditorExtensions(
     CollaborationCaret.configure({
       provider,
       user: collaborationUser,
+      render: (renderedUser) => {
+        const typedUser = renderedUser as CollaborationUser;
+        const key = typedUser.id ?? typedUser.name;
+
+        const cursor = document.createElement("span");
+        cursor.classList.add("collab-caret");
+        cursor.setAttribute("data-user-key", key);
+        cursor.style.setProperty("--caret-color", typedUser.color);
+
+        const label = document.createElement("div");
+        label.classList.add("collab-caret__label");
+        label.textContent = typedUser.name;
+
+        cursor.appendChild(label);
+        return cursor;
+      },
     }),
     Underline,
     TextStyle,
@@ -80,6 +96,7 @@ interface CollaborativeEditorProps {
   connected: boolean;
   synced: boolean;
   user: User;
+  idleUserIds: Set<string>;
 }
 
 function CollaborativeEditor({
@@ -91,6 +108,7 @@ function CollaborativeEditor({
   connected,
   synced,
   user,
+  idleUserIds,
 }: CollaborativeEditorProps) {
   const [docTitle, setDocTitle] = useState(document.title);
   const [lastSaved, setLastSaved] = useState<Date | null>(
@@ -130,6 +148,14 @@ function CollaborativeEditor({
 
     hasSeededContent.current = true;
   }, [editor, synced, document.content]);
+
+  useEffect(() => {
+    const carets = window.document.querySelectorAll<HTMLElement>("[data-user-key]");
+    carets.forEach((el) => {
+      const key = el.getAttribute("data-user-key");
+      el.classList.toggle("is-idle", !!key && idleUserIds.has(key));
+    });
+  }, [idleUserIds]);
 
   const handleSave = useCallback(async () => {
     if (isSaving || !editor || isReadOnly) return;
@@ -171,7 +197,7 @@ function CollaborativeEditor({
         onTitleChange={setDocTitle}
         lastSaved={lastSaved}
         isSaving={isSaving}
-        onSave={handleSave} 
+        onSave={handleSave}
         user={user}
         documentId={document.id}
         role={role}
@@ -181,10 +207,41 @@ function CollaborativeEditor({
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <EditorCanvas editor={editor} />
-        {/* Inline collapsible panel on md+, floating-button + drawer on
-            mobile — see CollaboratorsSidebar for the breakpoint logic. */}
+
         <CollaboratorsSidebar users={onlineUsers} connected={connected} />
       </div>
+
+      {/* Styles for the custom collaboration caret rendered above. Global
+          because CollaborationCaret injects these nodes directly into the
+          ProseMirror DOM via ProseMirror decorations, outside React's tree
+          — scoped/CSS-module styles wouldn't reach them. */}
+      <style jsx global>{`
+        .collab-caret {
+          position: relative;
+          border-left: 2px solid var(--caret-color, #888);
+          margin-left: -1px;
+          height: 1.1em;
+          pointer-events: none;
+          transition: opacity 300ms ease;
+          opacity: 1;
+        }
+        .collab-caret.is-idle {
+          opacity: 0;
+        }
+        .collab-caret__label {
+          position: absolute;
+          top: -1.4em;
+          left: -2px;
+          font-size: 11px;
+          line-height: 1.4;
+          white-space: nowrap;
+          padding: 1px 6px;
+          border-radius: 4px;
+          color: white;
+          background: var(--caret-color, #888);
+          transition: opacity 300ms ease;
+        }
+      `}</style>
     </div>
   );
 }
@@ -205,6 +262,7 @@ export default function DocumentEditor() {
     connected,
     onlineUsers,
     collaborationUser,
+    idleUserIds,
   } = useDocumentCollaboration(documentId, user);
 
   useEffect(() => {
@@ -288,6 +346,7 @@ export default function DocumentEditor() {
       connected={connected}
       synced={synced}
       user={user}
+      idleUserIds={idleUserIds}
     />
   );
 }

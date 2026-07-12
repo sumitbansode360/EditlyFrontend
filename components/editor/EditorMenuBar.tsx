@@ -27,14 +27,14 @@ import {
 
 interface Props { editor: Editor | null; }
 
-const FONT_SIZES = ["10","11","12","14","16","18","20","24","28","32","36","48","72"];
+const FONT_SIZES = ["10", "11", "12", "14", "16", "18", "20", "24", "28", "32", "36", "48", "72"];
 
 const HEADING_OPTIONS = [
   { label: "Normal text", value: "paragraph" },
-  { label: "Heading 1",   value: "h1" },
-  { label: "Heading 2",   value: "h2" },
-  { label: "Heading 3",   value: "h3" },
-  { label: "Heading 4",   value: "h4" },
+  { label: "Heading 1", value: "h1" },
+  { label: "Heading 2", value: "h2" },
+  { label: "Heading 3", value: "h3" },
+  { label: "Heading 4", value: "h4" },
 ];
 
 function TB({
@@ -63,9 +63,6 @@ function TB({
 }
 
 export default function EditorMenuBar({ editor }: Props) {
-  // ── KEY FIX: useEditorState subscribes to ProseMirror state changes ──
-  // This re-renders the toolbar on EVERY cursor move, selection change,
-  // and transaction — so isActive() and getAttributes() are always fresh.
   const editorState = useEditorState({
     editor,
     selector: (ctx) => {
@@ -73,23 +70,23 @@ export default function EditorMenuBar({ editor }: Props) {
       const e = ctx.editor;
       return {
         // Inline marks
-        isBold:          e.isActive("bold"),
-        isItalic:        e.isActive("italic"),
-        isUnderline:     e.isActive("underline"),
-        isStrike:        e.isActive("strike"),
-        isCode:          e.isActive("code"),
-        isHighlight:     e.isActive("highlight"),
+        isBold: e.isActive("bold"),
+        isItalic: e.isActive("italic"),
+        isUnderline: e.isActive("underline"),
+        isStrike: e.isActive("strike"),
+        isCode: e.isActive("code"),
+        isHighlight: e.isActive("highlight"),
         // Alignment
-        isAlignLeft:     e.isActive({ textAlign: "left" }),
-        isAlignCenter:   e.isActive({ textAlign: "center" }),
-        isAlignRight:    e.isActive({ textAlign: "right" }),
-        isAlignJustify:  e.isActive({ textAlign: "justify" }),
+        isAlignLeft: e.isActive({ textAlign: "left" }),
+        isAlignCenter: e.isActive({ textAlign: "center" }),
+        isAlignRight: e.isActive({ textAlign: "right" }),
+        isAlignJustify: e.isActive({ textAlign: "justify" }),
         // Lists
-        isBulletList:    e.isActive("bulletList"),
-        isOrderedList:   e.isActive("orderedList"),
-        isTaskList:      e.isActive("taskList"),
+        isBulletList: e.isActive("bulletList"),
+        isOrderedList: e.isActive("orderedList"),
+        isTaskList: e.isActive("taskList"),
         // Block types
-        isBlockquote:    e.isActive("blockquote"),
+        isBlockquote: e.isActive("blockquote"),
         // Heading / paragraph
         headingValue: (() => {
           for (const level of [1, 2, 3, 4] as const) {
@@ -108,17 +105,22 @@ export default function EditorMenuBar({ editor }: Props) {
 
   if (!editor || !editorState) return null;
 
+  // Radix's Select closes itself and returns focus to its own trigger
   const setHeading = (value: string) => {
-    if (value === "paragraph") {
-      editor.chain().focus().setParagraph().run();
-    } else {
-      const level = parseInt(value[1]) as 1 | 2 | 3 | 4;
-      editor.chain().focus().setHeading({ level }).run();
-    }
+    requestAnimationFrame(() => {
+      if (value === "paragraph") {
+        editor.chain().focus().setParagraph().run();
+      } else {
+        const level = parseInt(value[1]) as 1 | 2 | 3 | 4;
+        editor.chain().focus().setHeading({ level }).run();
+      }
+    });
   };
 
   const onFontSize = (size: string) => {
-    editor.chain().focus().setFontSize(size).run();
+    requestAnimationFrame(() => {
+      editor.chain().focus().setFontSize(size).run();
+    });
   };
 
   return (
@@ -138,7 +140,7 @@ export default function EditorMenuBar({ editor }: Props) {
         <SelectTrigger className="h-7 w-36 text-xs border-none shadow-none bg-transparent hover:bg-accent focus:ring-0 gap-1">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
           {HEADING_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
           ))}
@@ -152,7 +154,7 @@ export default function EditorMenuBar({ editor }: Props) {
         <SelectTrigger className="h-7 w-16 text-xs border-none shadow-none bg-transparent hover:bg-accent focus:ring-0">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
           {FONT_SIZES.map((s) => (
             <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
           ))}
