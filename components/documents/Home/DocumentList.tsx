@@ -61,7 +61,7 @@ export function DocumentList({
   };
 
   if (documents.length === 0) {
-    return <EmptyDocuments />;
+    return <EmptyDocuments onCreate={handleCreateDocument} isCreating={isCreating} />;
   }
 
   return (

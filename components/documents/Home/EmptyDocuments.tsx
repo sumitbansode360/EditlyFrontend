@@ -2,7 +2,12 @@ import { FileText, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export function EmptyDocuments() {
+type Props = {
+  onCreate: () => void;
+  isCreating?: boolean;
+};
+
+export function EmptyDocuments({ onCreate, isCreating }: Props) {
   return (
     <div className="flex min-h-[500px] flex-col items-center justify-center rounded-3xl border border-dashed bg-muted/20 px-6 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-3xl border bg-background shadow-sm">
@@ -18,9 +23,13 @@ export function EmptyDocuments() {
         writing with your team in realtime.
       </p>
 
-      <Button className="mt-6 rounded-xl h-10 px-4">
+      <Button
+        onClick={onCreate}
+        disabled={isCreating}
+        className="mt-6 rounded-xl h-10 px-4"
+      >
         <Plus className="mr-2 h-4 w-4" />
-        Create Document
+        {isCreating ? "Creating..." : "Create Document"}
       </Button>
     </div>
   );
