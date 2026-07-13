@@ -7,7 +7,7 @@ import EditorMenuBar from "./EditorMenuBar";
 import ShareDialog from "./ShareDialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,6 +123,7 @@ export default function EditorToolbar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="w-8 h-8 cursor-pointer ring-2 ring-transparent hover:ring-border transition-all">
+                <AvatarImage src={user.profile_pic ?? undefined} alt={user.email} />
                 <AvatarFallback className="bg-muted text-foreground text-xs font-semibold select-none">
                   {getInitials(user)}
                 </AvatarFallback>
