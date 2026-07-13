@@ -26,8 +26,10 @@ function Home() {
   };
 
   const userDetails = {
-    name: user?.first_name + " " + user?.last_name,
-    isAuthenticated: !!isAuthenticated
+    name: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() || "Guest User",
+    email: user?.email,
+    image: user?.profile_pic ?? undefined,
+    isAuthenticated: !!isAuthenticated,
   };
 
   return (

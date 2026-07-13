@@ -88,7 +88,7 @@ export default function Navbar({
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 rounded-xl border bg-background px-3 py-2 transition-colors hover:bg-muted focus:outline-none">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.image} alt={user.name} />
+                  <AvatarImage src={user.image ?? undefined} alt={user.name} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
