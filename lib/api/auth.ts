@@ -162,9 +162,7 @@ export const updateProfile = async (
       if (payload.last_name !== undefined) formData.append("last_name", payload.last_name);
       formData.append("profile_pic", payload.profile_pic);
 
-      const response = await api.patch<User>("/api/auth/me/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.patch<User>("/api/auth/me/", formData);
       return response.data;
     }
 

@@ -127,9 +127,6 @@ export function ProfileForm() {
       <div className="space-y-2">
         <Label>Email address</Label>
         <Input className="h-11 rounded-xl bg-muted/40" value={user.email} disabled readOnly />
-        <p className="text-xs text-muted-foreground">
-          Email changes aren&apos;t supported yet — contact support if you need this updated.
-        </p>
       </div>
 
       <Button
