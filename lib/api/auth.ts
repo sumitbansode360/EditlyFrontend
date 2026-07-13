@@ -1,10 +1,14 @@
 import axios from "axios";
+import api from "@/lib/axios";
 import {
   AuthResponse,
   LoginPayload,
   SignupPayload,
   LoginResponse,
   ForgotPasswordResponse,
+  User,
+  UpdateProfilePayload,
+  ChangePasswordPayload,
 } from "@/types/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -122,5 +126,81 @@ export const resetPassword = async (
     throw new Error(
       error.response?.data?.message || "Failed to reset password",
     );
+  }
+};
+
+/**
+ * Fetches the current authenticated user's profile.
+ * Uses the authenticated `api` client (not the public `axios` instance
+ * used above) since /me/ requires a bearer token.
+ */
+export const getMe = async (): Promise<User> => {
+  try {
+    const response = await api.get<User>("/api/auth/me/");
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to load your profile",
+    );
+  }
+};
+
+/**
+ * Updates the current user's name and/or profile picture.
+ * Sends multipart/form-data only when a picture is included — a plain
+ * JSON PATCH otherwise, so a name-only edit doesn't pay the multipart cost.
+ */
+export const updateProfile = async (
+  payload: UpdateProfilePayload,
+): Promise<User> => {
+  try {
+    if (payload.profile_pic) {
+      const formData = new FormData();
+      if (payload.first_name !== undefined) formData.append("first_name", payload.first_name);
+      if (payload.last_name !== undefined) formData.append("last_name", payload.last_name);
+      formData.append("profile_pic", payload.profile_pic);
+
+      const response = await api.patch<User>("/api/auth/me/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data;
+    }
+
+    const { profile_pic, ...rest } = payload;
+    const response = await api.patch<User>("/api/auth/me/", rest);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to update your profile",
+    );
+  }
+};
+
+export const changePassword = async (
+  payload: ChangePasswordPayload,
+): Promise<{ message: string }> => {
+  try {
+    const response = await api.post<{ message: string }>(
+      "/api/auth/change-password/",
+      payload,
+    );
+    return response.data;
+  } catch (error: any) {
+    const data = error.response?.data;
+    const message = data?.message || data?.detail || "Failed to change password";
+    const err = new Error(message) as any;
+
+    // Surface field-level validation errors (e.g. confirm_password
+    // mismatch, weak new_password) the same way signupUser() does.
+    if (data && typeof data === "object") {
+      if (data.confirm_password) err.confirm_password = Array.isArray(data.confirm_password) ? data.confirm_password[0] : data.confirm_password;
+      if (data.new_password) err.new_password = Array.isArray(data.new_password) ? data.new_password[0] : data.new_password;
+    }
+
+    throw err;
   }
 };

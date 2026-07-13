@@ -133,10 +133,16 @@ export default function EditorToolbar({
                 {user.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-sm cursor-pointer">
+              <DropdownMenuItem
+                className="gap-2 text-sm cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
                 <User className="w-3.5 h-3.5" /> Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-sm cursor-pointer">
+              <DropdownMenuItem
+                className="gap-2 text-sm cursor-pointer"
+                onClick={() => router.push("/settings")}
+              >
                 <Settings className="w-3.5 h-3.5" /> Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />

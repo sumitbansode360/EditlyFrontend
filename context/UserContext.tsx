@@ -68,6 +68,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // Merges a partial update into the cached user — used after a profile
+  // edit succeeds, so the navbar/toolbar avatar and name update immediately
+  // instead of waiting for the next full session restore.
+  const updateUser = useCallback((patch: Partial<User>) => {
+    setUser((current) => (current ? { ...current, ...patch } : current));
+  }, []);
+
   const value: AuthContextType = useMemo(
     () => ({
       user,
@@ -75,8 +82,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       isLoading,
       login,
       logout,
+      updateUser,
     }),
-    [user, isLoading, login, logout]
+    [user, isLoading, login, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
