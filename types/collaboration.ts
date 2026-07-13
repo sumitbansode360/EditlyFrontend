@@ -7,6 +7,7 @@ export interface CollaborationUser {
   id: string;
   name: string;
   color: string;
+  profile_pic?: string | null;
 }
 
 export interface OnlineUser extends CollaborationUser {

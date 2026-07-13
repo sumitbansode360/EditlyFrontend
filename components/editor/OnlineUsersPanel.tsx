@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OnlineUser } from "@/types/collaboration";
 import { Users, Wifi, WifiOff } from "lucide-react";
 
@@ -63,6 +63,7 @@ export default function OnlineUsersPanel({ users, connected }: Props) {
             >
               <div className="relative flex-shrink-0">
                 <Avatar className="w-8 h-8">
+                  <AvatarImage src={onlineUser.profile_pic ?? undefined} alt={onlineUser.name} />
                   <AvatarFallback
                     className="text-[11px] font-semibold text-white"
                     style={{ backgroundColor: onlineUser.color }}

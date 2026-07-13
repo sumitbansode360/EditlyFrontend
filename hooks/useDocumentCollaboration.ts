@@ -20,6 +20,7 @@ function buildCollaborationUser(user: User): CollaborationUser {
     id: user.id,
     name,
     color: getUserColor(user.id),
+    profile_pic: user.profile_pic,
   };
 }
 
@@ -107,6 +108,7 @@ export function useDocumentCollaboration(
           clientId,
           name: userState.name,
           color: userState.color,
+          profile_pic: userState.profile_pic,
           isCurrentUser: isThisConnectionMe,
           sessionCount: 1,
         });

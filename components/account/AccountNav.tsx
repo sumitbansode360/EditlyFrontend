@@ -20,10 +20,10 @@ export function AccountNav() {
         variant="ghost"
         size="sm"
         className="gap-1.5 text-muted-foreground hover:cursor-pointer"
-        onClick={() => router.push("/home")}
+        onClick={() => router.back()}
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Back to documents
+        Back
       </Button>
 
       <div className="flex items-center gap-1 rounded-full border bg-muted/30 p-1">
