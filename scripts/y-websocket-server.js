@@ -193,7 +193,7 @@ const setupWSConnection = (conn, req) => {
     }
 };
 
-const host = process.env.HOST || "localhost";
+const host = process.env.HOST || "0.0.0.0";
 const port = process.env.PORT || 1234;
 
 const server = http.createServer((_req, res) => {
