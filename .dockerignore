@@ -11,3 +11,7 @@ npm-debug.log*
 .env.production.local
 .env.local
 .env.production
+coverage
+.vercel
+*.log
+README.md
