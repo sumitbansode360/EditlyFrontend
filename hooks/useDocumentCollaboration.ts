@@ -36,10 +36,13 @@ export function useDocumentCollaboration(
 
   const ydoc = useMemo(() => new Y.Doc(), [documentId]);
 
+
   const collaborationUser = useMemo(
     () => (user ? buildCollaborationUser(user) : null),
     [user],
   );
+
+  const userId = user?.id;
 
   // clientId -> last-seen serialized cursor, to detect movement
   const previousCursorsRef = useRef<Map<number, string>>(new Map());
@@ -47,7 +50,7 @@ export function useDocumentCollaboration(
   const lastActivityRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
-    if (!documentId || !user || !collaborationUser) {
+    if (!documentId || !userId) {
       return;
     }
 
@@ -145,12 +148,9 @@ export function useDocumentCollaboration(
       previousCursorsRef.current.clear();
       lastActivityRef.current.clear();
     };
-  }, [documentId, user, ydoc, collaborationUser]);
+  }, [documentId, userId, ydoc]);
 
-  // Separate timer loop: recompute who's idle every second. This has to be
-  // time-driven rather than purely reactive to awareness changes, since
-  // "5 seconds have passed with no new data" is exactly the condition we
-  // can't detect just by listening for new data.
+
   useEffect(() => {
     if (!provider) return;
 
