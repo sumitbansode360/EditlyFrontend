@@ -44,3 +44,6 @@ next-env.d.ts
 .env.local
 .env.production
 !.env.example
+
+# Ignore directories with special characters (prevent recurrence of malformed paths)
+D*
