@@ -14,6 +14,12 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:1234";
 const IDLE_THRESHOLD_MS = 5000;
 const IDLE_CHECK_INTERVAL_MS = 1000;
 
+// How long to wait for a first-ever sync before we stop calling the UI
+// state "connecting". Purely a status label — never blocks editing, since
+// the document is already visible and editable via the REST-backed
+// fallback the whole time.
+const SYNC_STALL_TIMEOUT_MS = 8000;
+
 function buildCollaborationUser(user: User): CollaborationUser {
   const name = `${user.first_name} ${user.last_name}`.trim() || user.email;
   return {
@@ -33,6 +39,15 @@ export function useDocumentCollaboration(
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [idleUserIds, setIdleUserIds] = useState<Set<string>>(new Set());
+  // True once this document has synced at least once during this mount.
+  // Distinguishes "never connected yet" (safe to fall back to a plain,
+  // non-collaborative editor) from "was live, just dropped" (safe to keep
+  // editing through the same Yjs doc — it queues local edits and merges
+  // them once reconnected, which is exactly what it's designed to do).
+  const [everSynced, setEverSynced] = useState(false);
+  // True if we've waited past SYNC_STALL_TIMEOUT_MS without a first sync.
+  // Status-label signal only — never gates editing.
+  const [connectionStalled, setConnectionStalled] = useState(false);
 
   const ydoc = useMemo(() => new Y.Doc(), [documentId]);
 
@@ -65,8 +80,17 @@ export function useDocumentCollaboration(
       setConnected(status === "connected");
     };
 
+    const stallTimer = setTimeout(() => {
+      setConnectionStalled(true);
+    }, SYNC_STALL_TIMEOUT_MS);
+
     const handleSync = (isSynced: boolean) => {
       setSynced(isSynced);
+      if (isSynced) {
+        setEverSynced(true);
+        setConnectionStalled(false);
+        clearTimeout(stallTimer);
+      }
     };
 
     const updateOnlineUsers = () => {
@@ -138,6 +162,7 @@ export function useDocumentCollaboration(
       wsProvider.off("status", handleStatus);
       wsProvider.off("sync", handleSync);
       wsProvider.awareness.off("change", updateOnlineUsers);
+      clearTimeout(stallTimer);
       wsProvider.destroy();
       ydoc.destroy();
       setProvider(null);
@@ -145,6 +170,8 @@ export function useDocumentCollaboration(
       setConnected(false);
       setOnlineUsers([]);
       setIdleUserIds(new Set());
+      setEverSynced(false);
+      setConnectionStalled(false);
       previousCursorsRef.current.clear();
       lastActivityRef.current.clear();
     };
@@ -176,5 +203,7 @@ export function useDocumentCollaboration(
     onlineUsers,
     collaborationUser,
     idleUserIds,
+    everSynced,
+    connectionStalled,
   };
 }

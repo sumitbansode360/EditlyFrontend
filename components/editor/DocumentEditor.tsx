@@ -41,11 +41,12 @@ function isTipTapContentEmpty(content: unknown): boolean {
 }
 
 function buildEditorExtensions(
+  isLive: boolean,
   ydoc: Y.Doc,
   provider: WebsocketProvider,
   collaborationUser: CollaborationUser
 ) {
-  return [
+  const base = [
     StarterKit.configure({
       undoRedo: false,
       underline: false,
@@ -53,6 +54,26 @@ function buildEditorExtensions(
       bulletList: { keepMarks: true, keepAttributes: false },
       orderedList: { keepMarks: true, keepAttributes: false },
     }),
+    Underline,
+    TextStyle,
+    Color,
+    FontSize,
+    Highlight.configure({ multicolor: false }),
+    TextAlign.configure({ types: ["heading", "paragraph"] }),
+    Placeholder.configure({ placeholder: "Start typing your document…" }),
+    Typography,
+    TaskList,
+    TaskItem.configure({ nested: true }),
+  ];
+
+  // Before the first-ever sync, the editor runs in plain mode: no Yjs
+  // binding, content comes from the `content` option passed to useEditor.
+  // This is what lets the document show up and stay editable even if the
+  // live connection is slow, rejected, or never arrives at all.
+  if (!isLive) return base;
+
+  return [
+    ...base,
     Collaboration.configure({ document: ydoc }),
     CollaborationCaret.configure({
       provider,
@@ -74,16 +95,6 @@ function buildEditorExtensions(
         return cursor;
       },
     }),
-    Underline,
-    TextStyle,
-    Color,
-    FontSize,
-    Highlight.configure({ multicolor: false }),
-    TextAlign.configure({ types: ["heading", "paragraph"] }),
-    Placeholder.configure({ placeholder: "Start typing your document…" }),
-    Typography,
-    TaskList,
-    TaskItem.configure({ nested: true }),
   ];
 }
 
@@ -95,6 +106,8 @@ interface CollaborativeEditorProps {
   onlineUsers: OnlineUser[];
   connected: boolean;
   synced: boolean;
+  everSynced: boolean;
+  connectionStalled: boolean;
   user: User;
   idleUserIds: Set<string>;
 }
@@ -107,6 +120,8 @@ function CollaborativeEditor({
   onlineUsers,
   connected,
   synced,
+  everSynced,
+  connectionStalled,
   user,
   idleUserIds,
 }: CollaborativeEditorProps) {
@@ -125,29 +140,85 @@ function CollaborativeEditor({
   const role = document.role ?? "viewer";
   const isReadOnly = role === "viewer";
 
+  // Holds the document's content while we're not yet on the live Yjs doc.
+  // Starts as the REST-loaded content, updates as the person types in
+  // plain mode, and — if the live connection comes up while they've typed
+  // unsaved changes — is what seeds the Yjs doc, so nothing typed during
+  // the "connecting" window is lost when we switch editors.
+  const [fallbackContent, setFallbackContent] = useState(document.content);
+
+  // Once this document has synced at least once, stay on the live,
+  // Yjs-backed editor for the rest of this mount — including through a
+  // later drop. Yjs is built to queue local edits offline and merge them
+  // on reconnect, so there's no need (and real risk of duplicated content)
+  // in swapping back to plain mode after a connection blip. Only before
+  // the very first sync do we use the plain fallback editor.
+  const isLive = everSynced;
+
   const editor = useEditor(
     {
       immediatelyRender: false,
       editable: !isReadOnly,
-      extensions: buildEditorExtensions(ydoc, provider, collaborationUser),
+      content: !isLive ? fallbackContent : undefined,
+      extensions: buildEditorExtensions(
+        isLive,
+        ydoc,
+        provider,
+        collaborationUser
+      ),
       editorProps: {
         attributes: {
           class: "outline-none min-h-full",
         },
       },
+      onUpdate: ({ editor: updatedEditor }) => {
+        if (!isLive) {
+          setFallbackContent(updatedEditor.getJSON());
+        }
+      },
     },
-    [provider, collaborationUser, ydoc]
+    [isLive, provider, collaborationUser, ydoc]
   );
 
   useEffect(() => {
     if (!editor || !synced || hasSeededContent.current) return;
 
-    if (editor.isEmpty && !isTipTapContentEmpty(document.content)) {
-      editor.commands.setContent(document.content);
+    if (editor.isEmpty && !isTipTapContentEmpty(fallbackContent)) {
+      editor.commands.setContent(fallbackContent);
     }
 
     hasSeededContent.current = true;
-  }, [editor, synced, document.content]);
+  }, [editor, synced, fallbackContent]);
+
+  // Quiet status toasts — only on genuine transitions, never on first
+  // connect (that one's just the normal startup and doesn't need a toast).
+  const prevPhaseRef = useRef<"init" | "stalled" | "live" | "reconnecting">(
+    "init"
+  );
+  useEffect(() => {
+    const phase = everSynced
+      ? connected
+        ? "live"
+        : "reconnecting"
+      : connectionStalled
+        ? "stalled"
+        : "init";
+
+    if (phase !== prevPhaseRef.current) {
+      if (phase === "stalled") {
+        toast.warning(
+          "Live sync is taking a while — you can keep editing, changes save when you hit Save."
+        );
+      } else if (phase === "reconnecting") {
+        toast.warning(
+          "Live connection lost — your edits are safe and will sync once reconnected."
+        );
+      } else if (phase === "live" && prevPhaseRef.current !== "init") {
+        toast.success("Live sync connected");
+      }
+      prevPhaseRef.current = phase;
+    }
+  }, [everSynced, connected, connectionStalled]);
 
   useEffect(() => {
     const carets = window.document.querySelectorAll<HTMLElement>("[data-user-key]");
@@ -204,6 +275,15 @@ function CollaborativeEditor({
       />
 
       {isReadOnly && <ReadOnlyBanner />}
+
+      {!everSynced && connectionStalled && (
+        <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-amber-800 text-xs flex-shrink-0">
+          <span>
+            Live sync unavailable — you&apos;re editing the last saved
+            version. Changes save when you click Save.
+          </span>
+        </div>
+      )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <EditorCanvas editor={editor} />
@@ -263,6 +343,8 @@ export default function DocumentEditor() {
     onlineUsers,
     collaborationUser,
     idleUserIds,
+    everSynced,
+    connectionStalled,
   } = useDocumentCollaboration(documentId, user);
 
   useEffect(() => {
@@ -345,6 +427,8 @@ export default function DocumentEditor() {
       onlineUsers={onlineUsers}
       connected={connected}
       synced={synced}
+      everSynced={everSynced}
+      connectionStalled={connectionStalled}
       user={user}
       idleUserIds={idleUserIds}
     />
