@@ -115,31 +115,31 @@ export function DocumentGrid({ document }: Props) {
           <Link href={`/documents/${document.id}`} className="block">
             {/* DOCUMENT PREVIEW */}
             <div className="relative">
-              <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-4 md:h-48">
+              <div className="relative h-44 overflow-hidden border-b bg-muted/20 p-3">
                 {/* DOCUMENT PAPER */}
-                <div className="mx-auto h-full w-[85%] rounded-sm border bg-background shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
+                <div className="mx-auto h-full w-[90%] rounded-sm border bg-background shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
                   {/* DOCUMENT HEADER */}
-                  <div className="border-b px-4 py-3">
-                    <div className="h-3 w-24 rounded bg-muted-foreground/20" />
+                  <div className="border-b px-3 py-2">
+                    <div className="h-2.5 w-20 rounded bg-muted-foreground/20" />
                   </div>
 
                   {/* DOCUMENT CONTENT */}
-                  <div className="space-y-2 p-4">
-                    <div className="h-2 w-full rounded bg-muted-foreground/10" />
+                  <div className="space-y-1.5 p-3">
+                    <div className="h-1.5 w-full rounded bg-muted-foreground/10" />
 
-                    <div className="h-2 w-[92%] rounded bg-muted-foreground/10" />
+                    <div className="h-1.5 w-[90%] rounded bg-muted-foreground/10" />
 
-                    <div className="h-2 w-[80%] rounded bg-muted-foreground/10" />
+                    <div className="h-1.5 w-[75%] rounded bg-muted-foreground/10" />
 
-                    <div className="pt-4">
-                      <div className="h-2 w-[70%] rounded bg-muted-foreground/10" />
+                    <div className="pt-3">
+                      <div className="h-1.5 w-[65%] rounded bg-muted-foreground/10" />
                     </div>
 
-                    <div className="h-2 w-full rounded bg-muted-foreground/10" />
+                    <div className="h-1.5 w-full rounded bg-muted-foreground/10" />
 
-                    <div className="h-2 w-[85%] rounded bg-muted-foreground/10" />
+                    <div className="h-1.5 w-[80%] rounded bg-muted-foreground/10" />
 
-                    <div className="h-2 w-[60%] rounded bg-muted-foreground/10" />
+                    <div className="h-1.5 w-[55%] rounded bg-muted-foreground/10" />
                   </div>
                 </div>
               </div>

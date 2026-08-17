@@ -111,7 +111,7 @@ export function DocumentList({
 
       {/* GRID VIEW */}
       {view === "grid" ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-6">
           {documents.map((document) => (
             <DocumentGrid
               key={document.id}
